@@ -18,6 +18,14 @@
         },
         "schemas": [],
         "displayName": "Production"
+      },
+      {
+        "connectionProvider": {
+          "type": "UsernamePassword",
+          "url": "jdbc:sqlserver://localhost;databaseName=not_TPR_build;encrypt=true;integratedSecurity=true;trustServerCertificate=true"
+        },
+        "schemas": [],
+        "displayName": "Build"
       }
     ]
   },
