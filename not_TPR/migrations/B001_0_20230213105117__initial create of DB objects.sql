@@ -19,7 +19,3 @@ CREATE TABLE [dbo].[world](
 	[baz] [nchar](10) NULL
 ) ON [PRIMARY]
 GO
-USE [master]
-GO
-ALTER DATABASE [production] SET  READ_WRITE 
-GO
