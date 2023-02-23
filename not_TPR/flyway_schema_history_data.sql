@@ -9,7 +9,10 @@ SET NOCOUNT ON
 
 DECLARE @mergeOutput TABLE ( [DMLAction] VARCHAR(6) );
 MERGE INTO [flyway_schema_history] AS [Target]
-USING (SELECT [installed_rank],[version],[description],[type],[script],[checksum],[installed_by],[installed_on],[execution_time],[success] FROM [flyway_schema_history] WHERE 1 = 0 -- Empty dataset (source table contained no rows at time of MERGE generation) 
+USING (VALUES
+  (1,N'001.0.20230213105117',N'initial create of DB objects',N'SQL_BASELINE',N'B001_0_20230213105117__initial create of DB objects.sql',1872819769,N'MercuryPoC\student','2023-02-23T16:43:19.637',26,1)
+ ,(2,N'002.0.20230214133913',N'MAIN - Create new table on main',N'SQL',N'V002_0_20230214133913__MAIN - Create new table on main.sql',1582727627,N'MercuryPoC\student','2023-02-23T16:43:20.153',43,1)
+ ,(3,N'002.1.20230214133913',N'QA4 - Create new table on qa4',N'SQL',N'V002_1_20230214133913__QA4 - Create new table on qa4.sql',-256190183,N'MercuryPoC\student','2023-02-23T16:43:20.410',10,1)
 ) AS [Source] ([installed_rank],[version],[description],[type],[script],[checksum],[installed_by],[installed_on],[execution_time],[success])
 ON ([Target].[installed_rank] = [Source].[installed_rank])
 WHEN MATCHED AND (

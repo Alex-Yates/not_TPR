@@ -48,12 +48,19 @@ function Test-FlywaySchemaHistoryTableExists {
 function New-FlywaySchemaHistoryTable {
     param (
         [Parameter(Mandatory=$true)]$serverInstance,
+        [Parameter(Mandatory=$true)]$database
+    )
+    Invoke-DbaQuery -SqlInstance $serverInstance -database $database -File ".\create_flyway_schema_history_table.sql"
+}
+
+function Update-FlywaySchemaHistoryTable {
+    param (
+        [Parameter(Mandatory=$true)]$serverInstance,
         [Parameter(Mandatory=$true)]$database,
         [Parameter(Mandatory=$true)]$flywayRoot
     )
-    Invoke-DbaQuery -SqlInstance $serverInstance -database $database -File ".\create_flyway_schema_history_table.sql"
-    $insertFlywaySchemaHistoryData = Get-FlywaySchemaHistoryData -serverInstance $serverInstance -database $database
-    Invoke-DbaQuery -SqlInstance $serverInstance -Query $insertFlywaySchemaHistoryData
+    $flywaySchemaHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -flywayRoot $flywayRoot
+    Invoke-DbaQuery -SqlInstance $serverInstance -database $database -File $flywaySchemaHistoryDataScript 
 }
 
 function  Get-FlywaySchemaHistoryDataScriptPath {
