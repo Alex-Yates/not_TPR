@@ -14,7 +14,6 @@ Write-Output "  instance:   $instance"
 Write-Output "  database:   $database"
 Write-Output "  flywayRoot: $flywayRoot"
 
-
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = Split-Path $buildDir -Parent
