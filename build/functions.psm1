@@ -67,7 +67,7 @@ function  Get-FlywaySchemaHistoryDataScriptPath {
     param (
         [Parameter(Mandatory=$true)]$flywayRoot
     )
-    $FlywaySchemaHistoryDataScriptPath = "$flywayRoot/flyway_schema_history_data.sql"
+    $FlywaySchemaHistoryDataScriptPath = "$flywayRoot\flyway_schema_history_data.sql"
     return $FlywaySchemaHistoryDataScriptPath
 }
 
