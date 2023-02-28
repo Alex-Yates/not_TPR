@@ -8,16 +8,17 @@ param (
 
 $ErrorActionPreference = "stop"
 
-$gitRoot = 
+Write-Output "Given parameters:"
+Write-Output "  server:     $server"
+Write-Output "  instance:   $instance"
+Write-Output "  database:   $database"
+Write-Output "  flywayRoot: $flywayRoot"
 
-Write-Output "Importing required modules/functions."
+
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = Split-Path $buildDir -Parent
 $fullyQualifiedFlywayRoot = "$gitRoot\$flywayRoot"
-
-import-module $buildDir\functions.psm1
-import-module dbatools
 
 $locations = "filesystem:$gitRoot\$flywayRoot\migrations"
 $serverInstance = $server
@@ -25,6 +26,20 @@ if ($instance -notlike ""){
     $serverInstance = "$server\$instance"
 }
 $flywayHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -FlywayRoot $fullyQualifiedFlywayRoot
+
+Write-Output "Derived parameters:"
+Write-Output "  thisScript:     $thisScript"
+Write-Output "  gitRoot:        $gitRoot"
+Write-Output "  buildDir:       $buildDir"
+Write-Output "  locations:      $locations"
+Write-Output "  serverInstance: $serverInstance"
+Write-Output "  fullyQualifiedFlywayRoot: $fullyQualifiedFlywayRoot"
+Write-Output "  flywayHistoryDataScript:  $flywayHistoryDataScript"
+
+Write-Output "Importing helper functions from $buildDir\functions.psm1."
+import-module "$buildDir\functions.psm1"
+Write-Output "Importing dbatools (dbatools.io). (Required)."
+import-module dbatools
 
 Write-Output "Verifying sp_generate_merge exists in master database on $serverInstance."
 if (Test-SpGenerateMergeExists -serverInstance $serverInstance){
