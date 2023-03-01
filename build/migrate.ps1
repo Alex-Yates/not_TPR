@@ -46,7 +46,7 @@ if (Test-SpGenerateMergeExists -serverInstance $serverInstance){
 }
 else {
     Write-Output "  sp_generate_merge DOES NOT exist in master database on $serverInstance. Adding it now."
-    New-SpGenerateMerge -serverInstance $serverInstance
+    New-SpGenerateMerge -serverInstance $serverInstance -buildDir $buildDir
     if (Test-SpGenerateMergeExists -serverInstance $serverInstance){
         Write-Output "  sp_generate_merge successfully created in master database on $serverInstance."
     }
@@ -76,7 +76,7 @@ if (Test-FlywaySchemaHistoryTableExists -serverInstance $serverInstance -databas
 }
 else {
     Write-Output "  flyway_schema_history table DOES NOT exist on $database on $serverInstance. Adding it now."
-    New-FlywaySchemaHistoryTable -serverInstance $serverInstance -database $database
+    New-FlywaySchemaHistoryTable -serverInstance $serverInstance -database $database -buildDir $buildDir
     Write-Output "  Populating flyway_schema_history table with data from $flywayHistoryDataScript."
     Update-FlywaySchemaHistoryTable -serverInstance $serverInstance -database $database -flywayRoot $flywayRoot
     if (Test-FlywaySchemaHistoryTableExists -serverInstance $serverInstance -database $database){
@@ -97,4 +97,4 @@ Write-Output "Reading flyway_schema_history table."
 $flywaySchemaHistoryData = Get-FlywaySchemaHistoryData -serverInstance $serverInstance -database $database
 
 Write-Output "Updating flyway schema history data script at $flywayHistoryDataScript."
-Update-FlywaySchemaHistoryDataScript -flywaySchemaHistoryData $flywaySchemaHistoryData -flywayRoot $flywayRoot
+Update-FlywaySchemaHistoryDataScript -flywaySchemaHistoryData $flywaySchemaHistoryData -flywayRoot $fullyQualifiedFlywayRoot
