@@ -28,10 +28,9 @@ function Test-SpGenerateMergeExists {
 
 function New-SpGenerateMerge {
     param (
-        [Parameter(Mandatory=$true)]$serverInstance
+        [Parameter(Mandatory=$true)]$serverInstance,
+        [Parameter(Mandatory=$true)]$buildDir
     )
-    $thisScript = $MyInvocation.MyCommand.Path
-    $buildDir = Split-Path $thisScript -Parent
     Invoke-DbaQuery -SqlInstance $serverInstance -File "$buildDir\sp_generate_merge.sql"
 }
 
@@ -50,10 +49,9 @@ function Test-FlywaySchemaHistoryTableExists {
 function New-FlywaySchemaHistoryTable {
     param (
         [Parameter(Mandatory=$true)]$serverInstance,
-        [Parameter(Mandatory=$true)]$database
+        [Parameter(Mandatory=$true)]$database,
+        [Parameter(Mandatory=$true)]$buildDir
     )
-    $thisScript = $MyInvocation.MyCommand.Path
-    $buildDir = Split-Path $thisScript -Parent
     Invoke-DbaQuery -SqlInstance $serverInstance -database $database -File "$buildDir\create_flyway_schema_history_table.sql"
 }
 
