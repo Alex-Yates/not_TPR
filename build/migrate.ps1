@@ -78,7 +78,7 @@ else {
     Write-Output "  flyway_schema_history table DOES NOT exist on $database on $serverInstance. Adding it now."
     New-FlywaySchemaHistoryTable -serverInstance $serverInstance -database $database -buildDir $buildDir
     Write-Output "  Populating flyway_schema_history table with data from $flywayHistoryDataScript."
-    Update-FlywaySchemaHistoryTable -serverInstance $serverInstance -database $database -flywayRoot $flywayRoot
+    Update-FlywaySchemaHistoryTable -serverInstance $serverInstance -database $database -flywayRoot $fullyQualifiedFlywayRoot
     if (Test-FlywaySchemaHistoryTableExists -serverInstance $serverInstance -database $database){
         Write-Output "  flyway_schema_history table successfully added to $database on $serverInstance."
     }
@@ -98,3 +98,4 @@ $flywaySchemaHistoryData = Get-FlywaySchemaHistoryData -serverInstance $serverIn
 
 Write-Output "Updating flyway schema history data script at $flywayHistoryDataScript."
 Update-FlywaySchemaHistoryDataScript -flywaySchemaHistoryData $flywaySchemaHistoryData -flywayRoot $fullyQualifiedFlywayRoot
+
