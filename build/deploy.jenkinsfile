@@ -39,7 +39,7 @@ pipeline {
         */
         stage('Flyway migrate') {
             steps {
-                powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.SERVER} -database ${params.SERVER} -flywayRoot ${params.SERVER}
+                powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.SERVER} -database ${params.SERVER} -flywayRoot ${params.SERVER}"
             }
         }
         /*
