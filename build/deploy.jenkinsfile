@@ -29,14 +29,14 @@ pipeline {
                 echo "hello world"
             }
         }
-        /*
+        
         stage('git status') {
             steps {
                 git branch
                 git status
             }
         }
-        */
+        
         stage('Flyway migrate') {
             steps {
                 powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT}"
