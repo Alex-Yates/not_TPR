@@ -38,7 +38,7 @@ pipeline {
 
         stage('Update Flyway Schema History Data') {
             steps {
-                powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT} -jobName ${env.JOB_NAME} -buildNumber ${env.BUILD_NUMBER} -buildUrl ${env.BUILD_URL} -branch = ${params.BRANCH}"
+                powershell "./build/update_fsh_data.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT} -jobName ${env.JOB_NAME} -buildNumber ${env.BUILD_NUMBER} -buildUrl ${env.BUILD_URL} -branch = ${params.BRANCH}"
             }
         }
 
