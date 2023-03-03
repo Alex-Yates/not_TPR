@@ -40,6 +40,7 @@ Write-Output "  serverInstance: $serverInstance"
 Write-Output "  fullyQualifiedFlywayRoot: $fullyQualifiedFlywayRoot"
 Write-Output "  flywayHistoryDataScript:  $flywayHistoryDataScript"
 
+<#
 # By default, Jenkins does some weird stuff with local branches which breaks commits and pushes back to git.
 # We want to ensure we have a traditional git checkout of the required branch to make sure the .\update_fsh_data.ps1 script will work.
 Write-Output "Initial git status is:"
@@ -50,6 +51,7 @@ Write-Output "Git pull to ensure we are up to date"
 git pull
 Write-Output "New git status is:"
 git status
+#>
 
 Write-Output "Verifying sp_generate_merge exists in master database on $serverInstance."
 if (Test-SpGenerateMergeExists -serverInstance $serverInstance){
