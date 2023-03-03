@@ -30,7 +30,7 @@ pipeline {
         }
         stage('Flyway migrate') {
             steps {
-                powershell ".\build\migrate.ps1 -server %SERVER% -instance %INSTANCE% -database %DATABASE% -flywayRoot %FLYWAYROOT% -licenseKey=%LICENSE%"
+                powershell "./build/migrate.ps1 -server %SERVER% -instance %INSTANCE% -database %DATABASE% -flywayRoot %FLYWAYROOT% -licenseKey=%LICENSE%"
             }
         }
         stage('Update FSH data in git') {
