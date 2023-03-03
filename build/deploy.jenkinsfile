@@ -17,9 +17,27 @@ pipeline {
         label "builtin" 
     }
     stages {
-        stage('build') {
+        stage('hello world') {
             steps {
-                echo 'hello world'
+                echo "hello world"
+            }
+        }
+        stage('git status') {
+            steps {
+                git branch
+                git status
+            }
+        }
+        stage('Flyway migrate') {
+            steps {
+                powershell ".\build\migrate.ps1 -server %SERVER% -instance %INSTANCE% -database %DATABASE% -flywayRoot %FLYWAYROOT% -licenseKey=%LICENSE%"
+            }
+        }
+        stage('Update FSH data in git') {
+            steps {
+                git add .
+                git commit -m "Jenkins commit. Job name: %JOB_NAME%. Build number: %BUILD_NUMBER%. Build URL: %BUILD_URL%."
+                git push origin HEAD:%BRANCH%
             }
         }
     }
