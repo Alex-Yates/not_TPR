@@ -26,7 +26,7 @@ pipeline {
     stages {
         stage('Pre-deploy prep') {
             steps {
-                powershell "./build/pre-deploy.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -branch = ${params.BRANCH}"
+                powershell "./build/pre-deploy.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -branch ${params.BRANCH}"
             }
         }
 
