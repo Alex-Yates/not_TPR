@@ -22,12 +22,14 @@ pipeline {
                 echo "hello world"
             }
         }
+        /*
         stage('git status') {
             steps {
                 git branch
                 git status
             }
         }
+        */
         stage('Flyway migrate') {
             steps {
                 powershell "./build/migrate.ps1 -server %SERVER% -instance %INSTANCE% -database %DATABASE% -flywayRoot %FLYWAYROOT% -licenseKey=%LICENSE%"
