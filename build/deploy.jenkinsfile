@@ -32,9 +32,8 @@ pipeline {
         
         stage('git status') {
             steps {
-                git checkout ${params.BRANCH}
-                git branch
-                git status
+                sh 'git branch'
+                sh 'git status'
             }
         }
         
