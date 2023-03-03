@@ -26,7 +26,7 @@ pipeline {
     stages {
         stage('Pre-deploy prep') {
             steps {
-                powershell "./build/pre-deploy.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE}"
+                powershell "./build/pre-deploy.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -branch = ${params.BRANCH}"
             }
         }
 
@@ -36,20 +36,10 @@ pipeline {
             }
         }
 
-        stage('Update Flyway Schema History Data') {
+        stage('Backup Flyway Schema History to git') {
             steps {
                 powershell "./build/update_fsh_data.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT} -jobName ${env.JOB_NAME} -buildNumber ${env.BUILD_NUMBER} -buildUrl ${env.BUILD_URL} -branch = ${params.BRANCH}"
             }
         }
-
-        /*
-        stage('Update FSH data in git') {
-            steps {
-                git add .
-                git commit -m "Jenkins commit. Job name: %JOB_NAME%. Build number: %BUILD_NUMBER%. Build URL: %BUILD_URL%."
-                //git push origin HEAD:%BRANCH%
-            }
-        }
-        */
     }
 }

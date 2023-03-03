@@ -59,5 +59,8 @@ git status
 Write-Output "Commiting all local changes to local repo."
 git commit -m "Jenkins commit. Job name: $jobName. Build number: $buildNumber. Build URL: $buildUrl."
 
+Write-Output "Current git status now is as follows. (All changes *should* be added):"
+git status
+
 Write-Output "Pushing all local commits to remote branch: $branch"
 git push origin HEAD:$branch
