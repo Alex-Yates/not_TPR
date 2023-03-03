@@ -21,7 +21,7 @@ pipeline {
         string(name: 'SERVER', defaultValue: 'localhost', description: 'The SQL Server that you intend to deploy to.')
         string(name: 'INSTANCE', defaultValue: 'MSSQLSERVER', description: 'The SQL Server Instance that you intend to deploy to.')
         string(name: 'DATABASE', defaultValue: 'not_tpr_prod', description: 'The name of the database that needs to be deployed.')
-        string(name: 'FLYWAYROOT', choices: 'not_TPR_prod', description: 'The relative path from git root to the root of the Flyway project.')
+        string(name: 'FLYWAYROOT', defaultValue: 'not_TPR_prod', description: 'The relative path from git root to the root of the Flyway project.')
     }
     stages {
         stage('hello world') {
