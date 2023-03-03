@@ -27,6 +27,10 @@ import-module "$buildDir\functions.psm1"
 Write-Output "Importing dbatools (dbatools.io). (Required)."
 import-module dbatools
 
+$serverInstance = $server
+if ($instance -notlike ""){
+    $serverInstance = "$server\$instance"
+}
 $flywayHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -FlywayRoot $fullyQualifiedFlywayRoot
 
 Write-Output "Derived parameters:"
