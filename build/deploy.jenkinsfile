@@ -37,7 +37,7 @@ pipeline {
             steps {
                 git add .
                 git commit -m "Jenkins commit. Job name: %JOB_NAME%. Build number: %BUILD_NUMBER%. Build URL: %BUILD_URL%."
-                git push origin HEAD:%BRANCH%
+                //git push origin HEAD:%BRANCH%
             }
         }
     }
