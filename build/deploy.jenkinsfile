@@ -33,6 +33,7 @@ pipeline {
                 powershell "./build/migrate.ps1 -server %SERVER% -instance %INSTANCE% -database %DATABASE% -flywayRoot %FLYWAYROOT% -licenseKey=%LICENSE%"
             }
         }
+        /*
         stage('Update FSH data in git') {
             steps {
                 git add .
@@ -40,5 +41,6 @@ pipeline {
                 //git push origin HEAD:%BRANCH%
             }
         }
+        */
     }
 }
