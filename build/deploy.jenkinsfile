@@ -24,24 +24,24 @@ pipeline {
         string(name: 'FLYWAYROOT', defaultValue: 'not_TPR_prod', description: 'The relative path from git root to the root of the Flyway project.')
     }
     stages {
-        stage('hello world') {
+        stage('Pre-deploy prep') {
             steps {
-                echo "hello world"
+                powershell "./build/pre-deploy.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE}"
             }
         }
-        
-        stage('git status') {
-            steps {
-                sh 'git branch'
-                sh 'git status'
-            }
-        }
-        
+
         stage('Flyway migrate') {
             steps {
                 powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT}"
             }
         }
+
+        stage('Update Flyway Schema History Data') {
+            steps {
+                powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT} -jobName ${env.JOB_NAME} -buildNumber ${env.BUILD_NUMBER} -buildUrl ${env.BUILD_URL} -branch = ${params.BRANCH}"
+            }
+        }
+
         /*
         stage('Update FSH data in git') {
             steps {
