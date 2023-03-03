@@ -16,6 +16,13 @@ pipeline {
         /* For Alex's PoC VM */
         label "builtin" 
     }
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'refs/heads/main', description: 'The git branch to build')
+        string(name: 'SERVER', defaultValue: 'localhost', description: 'The SQL Server that you intend to deploy to.')
+        string(name: 'INSTANCE', defaultValue: 'MSSQLSERVER', description: 'The SQL Server Instance that you intend to deploy to.')
+        string(name: 'DATABASE', defaultValue: 'not_tpr_prod', description: 'The name of the database that needs to be deployed.')
+        string(name: 'FLYWAYROOT', choices: ['One', 'Two', 'Three'], description: 'The relative path from git root to the root of the Flyway project.')
+    }
     stages {
         stage('hello world') {
             steps {
@@ -32,7 +39,7 @@ pipeline {
         */
         stage('Flyway migrate') {
             steps {
-                powershell "./build/migrate.ps1 -server %SERVER% -instance %INSTANCE% -database %DATABASE% -flywayRoot %FLYWAYROOT% -licenseKey=%LICENSE%"
+                powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.SERVER} -database ${params.SERVER} -flywayRoot ${params.SERVER}
             }
         }
         /*
