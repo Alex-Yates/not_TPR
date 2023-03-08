@@ -18,6 +18,9 @@ USING (VALUES
  ,(6,N'005.0.20230303211800',N'MAIN - TheMeaningOfLife',N'SQL',N'V005_0_20230303211800__MAIN - TheMeaningOfLife.sql',455411182,N'MercuryPoC\student','2023-03-03T12:28:39.120',17,1)
  ,(7,N'006.0.20230308154000',N'MAIN - SelectingStuff',N'SQL',N'V006_0_20230308154000__MAIN - SelectingStuff.sql',-2045131343,N'MercuryPoC\student','2023-03-08T15:44:11.483',24,1)
  ,(8,N'007.0.20230308154100',N'MAIN - PrintingStuff',N'SQL',N'V007_0_20230308154100__MAIN - PrintingStuff.sql',1361284783,N'MercuryPoC\student','2023-03-08T15:44:11.530',14,1)
+ ,(9,N'008.0.20230303211800',N'MAIN - TheMeaningOfLife2',N'SQL',N'V008_0_20230303211800__MAIN - TheMeaningOfLife2.sql',-1888282971,N'MercuryPoC\student','2023-03-08T15:49:58.477',42,1)
+ ,(10,N'009.0.20230308154000',N'MAIN - SelectingStuff2',N'SQL',N'V009_0_20230308154000__MAIN - SelectingStuff2.sql',-2045131343,N'MercuryPoC\student','2023-03-08T15:49:58.543',13,1)
+ ,(11,N'010.0.20230308154100',N'MAIN - PrintingStuff2',N'SQL',N'V010_0_20230308154100__MAIN - PrintingStuff2.sql',1436861842,N'MercuryPoC\student','2023-03-08T15:49:58.590',10,1)
 ) AS [Source] ([installed_rank],[version],[description],[type],[script],[checksum],[installed_by],[installed_on],[execution_time],[success])
 ON ([Target].[installed_rank] = [Source].[installed_rank])
 WHEN MATCHED AND (
