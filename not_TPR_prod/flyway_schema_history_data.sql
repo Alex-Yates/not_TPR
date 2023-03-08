@@ -16,6 +16,8 @@ USING (VALUES
  ,(4,N'003.0.20230214211800',N'MAIN - Create new table on main',N'SQL',N'V003_0_20230214211800__MAIN - Create new table on main.sql',1115767703,N'MercuryPoC\student','2023-02-23T17:15:36.417',8,1)
  ,(5,N'004.0.20230214211800',N'MAIN - THATS NUMBERWANG',N'SQL',N'V004_0_20230214211800__MAIN - THATS NUMBERWANG.sql',1017732337,N'MercuryPoC\student','2023-03-02T13:04:41.167',18,1)
  ,(6,N'005.0.20230303211800',N'MAIN - TheMeaningOfLife',N'SQL',N'V005_0_20230303211800__MAIN - TheMeaningOfLife.sql',455411182,N'MercuryPoC\student','2023-03-03T12:28:39.120',17,1)
+ ,(7,N'006.0.20230308154000',N'MAIN - SelectingStuff',N'SQL',N'V006_0_20230308154000__MAIN - SelectingStuff.sql',-2045131343,N'MercuryPoC\student','2023-03-08T15:44:11.483',24,1)
+ ,(8,N'007.0.20230308154100',N'MAIN - PrintingStuff',N'SQL',N'V007_0_20230308154100__MAIN - PrintingStuff.sql',1361284783,N'MercuryPoC\student','2023-03-08T15:44:11.530',14,1)
 ) AS [Source] ([installed_rank],[version],[description],[type],[script],[checksum],[installed_by],[installed_on],[execution_time],[success])
 ON ([Target].[installed_rank] = [Source].[installed_rank])
 WHEN MATCHED AND (
