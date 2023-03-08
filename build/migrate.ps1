@@ -42,5 +42,5 @@ $url = Get-JdbcUrl -server $server -instance $instance -database $database
 Write-Output "Running Flyway migrate with the following command:"
 Write-Output "  & flyway migrate -url=""$url"" -locations=""$locations"" -licenseKey=""$licenceKey"""
 Write-Output ""
-& flyway migrate -url=""$url"" -locations=""$locations"" -licenseKey=""$licenceKey""
+& flyway migrate -url=""$url"" -locations=""$locations"" -licenseKey=""$licenceKey"" -outputQueryResults=""true""
 
