@@ -40,7 +40,7 @@ Write-Output "  flywayHistoryDataScript:  $flywayHistoryDataScript"
 
 $url = Get-JdbcUrl -server $server -instance $instance -database $database
 Write-Output "Running Flyway migrate with the following command:"
-Write-Output "  & flyway migrate -url=""$url"" -locations=""$locations"" -licenseKey=""$licenceKey"""
+Write-Output "  & flyway migrate -url=""$url"" -locations=""$locations"" -licenseKey=""$licenceKey"" -errorOverrides=""S0001:0:I-"""
 Write-Output ""
-& flyway migrate -url=""$url"" -locations=""$locations"" -licenseKey=""$licenceKey"" -outputQueryResults=""true""
+& flyway migrate -url=""$url"" -locations=""$locations"" -licenseKey=""$licenceKey"" -outputQueryResults=""true"" -errorOverrides=""S0001:0:I-""
 
