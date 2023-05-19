@@ -1,7 +1,4 @@
 param (
-    $server,
-    $instance = "",
-    $database,
     $flywayRoot,
     $jobName = "unknown",
     $buildNumber = "unknown",
@@ -11,21 +8,22 @@ param (
 
 $ErrorActionPreference = "stop"
 
-Write-Output "Given parameters:"
-Write-Output "  server:     $server"
-Write-Output "  instance:   $instance"
-Write-Output "  database:   $database"
-Write-Output "  flywayRoot: $flywayRoot"
-
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = Split-Path $buildDir -Parent
 $fullyQualifiedFlywayRoot = "$gitRoot\$flywayRoot"
-
 Write-Output "Importing helper functions from $buildDir\functions.psm1."
 import-module "$buildDir\functions.psm1"
 Write-Output "Importing dbatools (dbatools.io). (Required)."
 import-module dbatools
+
+$jdbcUrl = Get-JdbcUrl -flywayRoot $flywayRoot
+$server = Get-ServerFromJdbcUrl $jdbcUrl
+$instance = Get-InstanceFromJdbcUrl $jdbcUrl
+$database = Get-DatabaseFromJdbcUrl $jdbcUrl
+
+Write-Output "Given parameters:"
+Write-Output "  flywayRoot: $flywayRoot"
 
 $serverInstance = $server
 if ($instance -notlike ""){
@@ -34,6 +32,9 @@ if ($instance -notlike ""){
 $flywayHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -FlywayRoot $fullyQualifiedFlywayRoot
 
 Write-Output "Derived parameters:"
+Write-Output "  server:         $server"
+Write-Output "  instance:       $instance"
+Write-Output "  database:       $database"
 Write-Output "  thisScript:     $thisScript"
 Write-Output "  gitRoot:        $gitRoot"
 Write-Output "  buildDir:       $buildDir"

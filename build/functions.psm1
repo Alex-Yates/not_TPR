@@ -1,19 +1,44 @@
 function Get-JdbcUrl {
     param (
-        [Parameter(Mandatory=$true)]$server,
-        [Parameter(Mandatory=$true)]$instance,
-        [Parameter(Mandatory=$true)]$database
+        [Parameter(Mandatory=$true)]$flywayRoot
     )
-
-    $instanceQualifier = ""
-    if ($instance -notin @("", "MSSQLSERVER")){
-        $instanceQualifier = ";instanceName=$instance"
-    }
-
-    $jdbc = "jdbc:sqlserver://$server;databaseName=$database$instanceQualifier;encrypt=true;integratedSecurity=true;trustServerCertificate=true"
-
-    return $jdbc
+    $confFile = Get-Content "./$flywayRoot/flyway.conf"
+    $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flyway.url=""jdbc:sqlserver://*"}
+    $jdbcUrl = ($jdbcUrlRow.Replace("flyway.url=","")).Trim()
+    return $jdbcUrl
 }
+
+function Get-ServerFromJdbcUrl {
+    param (
+        [Parameter(Mandatory=$true)]$url
+    )
+    $server = ($url.Split(';'))[0].Replace("""jdbc:sqlserver://","")
+    return $server
+}
+
+function Get-InstanceFromJdbcUrl {
+    param (
+        [Parameter(Mandatory=$true)]$url
+    )
+    $instance = "MSSQLSERVER"
+    if ($url -like "*;instanceName=*"){
+        $elements = $url.Split(';')
+        $instanceElement = $elements | Where-Object {$_ -like "instanceName=*"}
+        $instance = ($instanceElement.Split('='))[1]
+    }
+    return $instance
+}
+
+function Get-DatabaseFromJdbcUrl {
+    param (
+        [Parameter(Mandatory=$true)]$url
+    )
+    $elements = $url.Split(';')
+    $databaseElement = $elements | Where-Object {$_ -like "databaseName=*"}
+    $databaseName = ($databaseElement.Split('='))[1]
+    return $databaseName
+}
+
 
 function Test-SpGenerateMergeExists {
     param (

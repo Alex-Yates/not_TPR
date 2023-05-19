@@ -1,17 +1,8 @@
 param (
-    $server,
-    $instance = "",
-    $database,
     $flywayRoot
 )
 
 $ErrorActionPreference = "stop"
-
-Write-Output "Given parameters:"
-Write-Output "  server:     $server"
-Write-Output "  instance:   $instance"
-Write-Output "  database:   $database"
-Write-Output "  flywayRoot: $flywayRoot"
 
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
@@ -22,6 +13,18 @@ Write-Output "Importing helper functions from $buildDir\functions.psm1."
 import-module "$buildDir\functions.psm1"
 Write-Output "Importing dbatools (dbatools.io). (Required)."
 import-module dbatools
+
+$jdbcUrl = Get-JdbcUrl -flywayRoot $flywayRoot
+
+$server = Get-ServerFromJdbcUrl $jdbcUrl
+$instance = Get-InstanceFromJdbcUrl $jdbcUrl
+$database = Get-DatabaseFromJdbcUrl $jdbcUrl
+
+Write-Output "Given parameters:"
+Write-Output "  server:     $server"
+Write-Output "  instance:   $instance"
+Write-Output "  database:   $database"
+Write-Output "  flywayRoot: $flywayRoot"
 
 $locations = "filesystem:$gitRoot\$flywayRoot\migrations"
 $serverInstance = $server
