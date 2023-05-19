@@ -1,8 +1,8 @@
 param (
-    $server = "localhost",
+    $server,
     $instance = "",
-    $database = "not_TPR_prod",
-    $flywayRoot = "not_TPR_prod"
+    $database,
+    $flywayRoot
 )
 
 $ErrorActionPreference = "stop"

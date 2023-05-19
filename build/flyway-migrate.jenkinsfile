@@ -1,29 +1,20 @@
-/*
-node(AgentName) {
-    stage('Test1') {
-    }
-}
-*/
-
-
 /* Jenkinsfile (Declarative Pipeline) */
-/* Requires the Docker Pipeline plugin */
 pipeline {
-    agent { 
-        /* Example provided by CM team */ 
-        // docker { image 'maven:3.9.0-eclipse-temurin-11' }
-        
-        /* For Alex's PoC VM */
-        label "builtin" 
+    agent {
+         label "database_mgmt"
     }
+      
     parameters {
-        string(name: 'BRANCH', defaultValue: 'refs/heads/main', description: 'The git branch to build')
+        string(name: 'BRANCH', defaultValue: 'refs/heads/master', description: 'The git branch to build')
         string(name: 'SERVER', defaultValue: 'localhost', description: 'The SQL Server that you intend to deploy to.')
         string(name: 'INSTANCE', defaultValue: 'MSSQLSERVER', description: 'The SQL Server Instance that you intend to deploy to.')
-        string(name: 'DATABASE', defaultValue: 'not_tpr_prod', description: 'The name of the database that needs to be deployed.')
-        string(name: 'FLYWAYROOT', defaultValue: 'not_TPR_prod', description: 'The relative path from git root to the root of the Flyway project.')
+        string(name: 'DATABASE', defaultValue: 'not_TPR', description: 'The name of the database that needs to be deployed.')
+        string(name: 'FLYWAYROOT', defaultValue: 'not_TPR_dev', description: 'The relative path from git root to the root of the Flyway project.')
     }
-    stages {
+	
+    		
+	
+	stages {
         stage('Pre-deploy prep') {
             steps {
                 powershell "./build/pre-deploy.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT}"
@@ -32,8 +23,10 @@ pipeline {
 
         stage('Flyway migrate') {
             steps {
-                powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT}"
-            }
+                withCredentials([string(credentialsId: 'Flyway_License_Key', variable: 'FLYWAY_LICENCE')]) {
+					powershell "./build/migrate.ps1 -server ${params.SERVER} -instance ${params.INSTANCE} -database ${params.DATABASE} -flywayRoot ${params.FLYWAYROOT} -licenceKey ${FLYWAY_LICENCE}"
+                }
+			}
         }
 
         stage('Backup Flyway Schema History to git') {
