@@ -38,6 +38,8 @@ if ($instance -notlike ""){
 
 $scratchUrl = $targetUrl.replace(";databaseName=$database",";databaseName=$tempDatabaseName")
 $dmlUrl = $scratchUrl.replace(";integratedSecurity=true",";integratedSecurity=false;user=dml_user;password=DML_pa55w0rd")
+#$dmlUrl = $dmlUrl.replace(";encrypt=true",";encrypt=false")
+
 
 $locations = "filesystem:$gitRoot\$flywayRoot\migrations"
 $serverInstance = $server
@@ -74,7 +76,7 @@ $createDmlUserSql = @"
 USE $tempDatabaseName;
 IF NOT EXISTS (SELECT * FROM sys.syslogins WHERE name = 'dml_user')
 BEGIN
-    CREATE LOGIN dml_user WITH PASSWORD = 'My_password';
+    CREATE LOGIN dml_user WITH PASSWORD = 'DML_pa55w0rd';
 END
 
 CREATE USER dml_user FOR LOGIN dml_user;
@@ -89,11 +91,8 @@ DROP DATABASE $tempDatabaseName;
 # Running flyway info to get FlywaySchemaHistory and pending scripts data
 Write-Output "Running flyway info with telemetry off"
 $startTime = Get-Date -Format HH:mm:ss.fff
-Write-Output "Executing: & flyway info -url=""$targetUrl"" -locations=""$locations"" -licenseKey=[omitted] -outputType=""Json"""
-$flywayInfo = (& flyway info -url="$targetUrl" -locations="$locations" -licenseKey="$licenceKey" -outputType="Json") | ConvertFrom-Json #We should really pull the locations from the conf file instead.
-
-$currentVersion = $flywayInfo.schemaVersion
-Write-Output "CurrentVersion is: $currentVersion"
+Write-Output "Executing: & flyway info -workingDirectory=""$gitRoot/$flywayRoot"" -configFiles=""$gitRoot/$flywayRoot/flyway.conf"" -licenseKey=[omitted] -outputType=""Json"""
+$flywayInfo = (& flyway info -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -licenseKey="$licenceKey" -outputType="Json") | ConvertFrom-Json
 
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "CurrentVersion is: $currentVersion"
@@ -102,19 +101,37 @@ $allMigrations = $flywayInfo.migrations
 Write-Output "All migrations are:"
 Write-Output $allMigrations | Format-Table -Property version, description, state, filepath
 
-$pendingMigrations = $allMigrations | Where-Object {$_.state -like "Success"}
+$pendingMigrations = $allMigrations | Where-Object {$_.state -like "Pending"}
 Write-Output "Pending migrations are:"
 Write-Output $pendingMigrations | Format-Table -Property version, description, state, filepath
 
 # Building the scratch database
-Write-Output "Creating temp database for DML testing."
+Write-Output "Creating temp database $tempDatabaseName for DML testing."
 Invoke-DbaQuery -SqlInstance $serverInstance -Query $createDatabaseSql
 
 # Creating our DML user
-Write-Output "Creating a sql user on the temp database with only DML access."
+Write-Output "  Creating a sql user on $tempDatabaseName with only DML access."
 Invoke-DbaQuery -SqlInstance $serverInstance -Query $createDmlUserSql
 
+Write-Output "  Bringing the scratch database up to date with target."
+Write-Output "    Executing: & flyway migrate -workingDirectory=""$gitRoot/$flywayRoot"" -configFiles=""$gitRoot/$flywayRoot/flyway.conf"" -url=""$scratchUrl"" -target=""$currentVersion"" -licenseKey=[omitted]"
+& flyway migrate -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -url="$scratchUrl" -target="$currentVersion" -licenseKey="$licenceKey"
+
+Write-Output "  Running each pending script against the scratch database, with DML scripts executed as a user with only DML permissions."
+$pendingMigrations | ForEach-Object {
+    $thisVersion = $_.version
+    $isDmlOnly = $false
+    if ($_.filepath -like "*\$flywayRoot\migrations\DML\*"){
+        $isDmlOnly = $true
+    }
+    $thisUrl = $scratchUrl
+    if ($isDmlOnly){
+        $thisUrl = $dmlUrl
+    }
+    Write-Output "    Executing: & flyway migrate -workingDirectory=""$gitRoot/$flywayRoot"" -configFiles=""$gitRoot/$flywayRoot/flyway.conf"" -url=""$thisUrl"" -target=""$thisVersion"" -licenseKey=[omitted]"
+    & flyway migrate -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -url="$thisUrl" -target="$thisVersion" -licenseKey="$licenceKey"
+}
 
 # Dropping our scratch database
-Write-Output "Deleting temp database."
+Write-Output "Deleting $tempDatabaseName."
 Invoke-DbaQuery -SqlInstance $serverInstance -Query $dropDatabaseSql

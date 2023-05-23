@@ -3,7 +3,7 @@ function Get-JdbcUrl {
         [Parameter(Mandatory=$true)]$flywayRoot
     )
     $confFile = Get-Content "./$flywayRoot/flyway.conf"
-    $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flyway.url=""jdbc:sqlserver://*"}
+    $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flyway.url=jdbc:sqlserver://*"}
     $jdbcUrl = (($jdbcUrlRow.Replace("flyway.url=","")).Trim()).Replace('"',"")
 
     return $jdbcUrl
