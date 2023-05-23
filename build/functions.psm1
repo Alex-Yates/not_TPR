@@ -4,7 +4,8 @@ function Get-JdbcUrl {
     )
     $confFile = Get-Content "./$flywayRoot/flyway.conf"
     $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flyway.url=""jdbc:sqlserver://*"}
-    $jdbcUrl = ($jdbcUrlRow.Replace("flyway.url=","")).Trim()
+    $jdbcUrl = (($jdbcUrlRow.Replace("flyway.url=","")).Trim()).Replace('"',"")
+
     return $jdbcUrl
 }
 
@@ -12,7 +13,7 @@ function Get-ServerFromJdbcUrl {
     param (
         [Parameter(Mandatory=$true)]$url
     )
-    $server = ($url.Split(';'))[0].Replace("""jdbc:sqlserver://","")
+    $server = ($url.Split(';'))[0].Replace("jdbc:sqlserver://","")
     return $server
 }
 
