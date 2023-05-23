@@ -5,6 +5,9 @@ param (
 
 $ErrorActionPreference = "stop"
 
+# Redgate telemetry slows things down a lot. Disabling it for speed.
+& setx REDGATE_DISABLE_TELEMETRY true
+
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = Split-Path $buildDir -Parent

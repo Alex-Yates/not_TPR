@@ -5,6 +5,9 @@ param (
 
 $ErrorActionPreference = "stop"
 
+# Redgate telemetry slows things down a lot. Disabling it for speed.
+& setx REDGATE_DISABLE_TELEMETRY true
+
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = Split-Path $buildDir -Parent
@@ -86,12 +89,22 @@ DROP DATABASE $tempDatabaseName;
 # Running flyway info to get FlywaySchemaHistory and pending scripts data
 Write-Output "Running flyway info with telemetry off"
 $startTime = Get-Date -Format HH:mm:ss.fff
-Write-Output "Executing: & flyway info -url=""$targetUrl"" -licenseKey=[omitted] -outputType=""Json"""
-Write-output "  Starting at: $startTime"
+Write-Output "Executing: & flyway info -url=""$targetUrl"" -locations=""$locations"" -licenseKey=[omitted] -outputType=""Json"""
 $flywayInfo = (& flyway info -url="$targetUrl" -locations="$locations" -licenseKey="$licenceKey" -outputType="Json") | ConvertFrom-Json #We should really pull the locations from the conf file instead.
-$completionTime = Get-Date -Format HH:mm:ss.fff
-Write-output "  Finished at: $completionTime"
-Write-Output $flywayInfo.migrations | Format-Table -Property version, description, state, filepath
+
+$currentVersion = $flywayInfo.schemaVersion
+Write-Output "CurrentVersion is: $currentVersion"
+
+$currentVersion = $flywayInfo.schemaVersion
+Write-Output "CurrentVersion is: $currentVersion"
+
+$allMigrations = $flywayInfo.migrations
+Write-Output "All migrations are:"
+Write-Output $allMigrations | Format-Table -Property version, description, state, filepath
+
+$pendingMigrations = $allMigrations | Where-Object {$_.state -like "Success"}
+Write-Output "Pending migrations are:"
+Write-Output $pendingMigrations | Format-Table -Property version, description, state, filepath
 
 # Building the scratch database
 Write-Output "Creating temp database for DML testing."
