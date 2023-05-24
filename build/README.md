@@ -51,3 +51,12 @@ This is all very well and good, but there remains a concern that a developer may
 Parsing T-SQL for DDL is notoriously tricky. For example "CREATE TABLE dbo.RealTable" is DDL, but "CREATE TABLE #tempTable" is not. With this in mind, we decided against any form of text parsing. Instead, we adopt a strategy of executing all the pending migrations against a temp test database, and we execute the DML scripts as a user that only has datareadwriter permissions. If any of the DML scripts fail on the test database, that's either a sign that the script contains DDL, or that there is an error in the code. In either case, it's a good job we caught the issue early, before the DBA review or any production deployments.
 
 ## Technical overview of the scripts in this directory
+To do.
+
+## To Do: Remaining tasks
+1. Clean up the code. (This version works, but I've gone down a few rabbit holes along the way, and there is probably some redundant code lying around. Also, COMMENTS!)
+1. Update all conf files.
+1. Update migrate (and any other flyway calls) to us the locations and url from the flyway.conf file
+1. Make the DML user the default, and only use sa if explicitly DML. (What if someone adds another folder?)
+1. What if someone grants more creds to the dml_only user login in between builds? Should we drop/recreate it? Should we update permissions during build to explicitly deny DDL?
+1. Clean up old temp DBs.
