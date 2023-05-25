@@ -51,7 +51,39 @@ This is all very well and good, but there remains a concern that a developer may
 Parsing T-SQL for DDL is notoriously tricky. For example "CREATE TABLE dbo.RealTable" is DDL, but "CREATE TABLE #tempTable" is not. With this in mind, we decided against any form of text parsing. Instead, we adopt a strategy of executing all the pending migrations against a temp test database, and we execute the DML scripts as a user that only has datareadwriter permissions. If any of the DML scripts fail on the test database, that's either a sign that the script contains DDL, or that there is an error in the code. In either case, it's a good job we caught the issue early, before the DBA review or any production deployments.
 
 ## Technical overview of the scripts in this directory
-To do.
+
+### flyway-migrate.jenkinsfile <<< --- START HERE
+This is effectively a coordinator file. The one script to rule them all. We give it to Jenkins and Jenkins uses it to interpret what it needs to do.
+
+The JenkinsFile is divided into 3 key sections:
+
+- *agent*: specifies which build agent(s) the scripts should run on.
+- *parameters*: values specified by the Jenkins user when they trigger a job. For example, "FLYWAYROOT" specifies the relative path to the flyway project. (Effectively allowing the Jenkins user to select the "DEV" or "QA" projects.)
+- *stages*: the things Jenkins will do. Effectively, running four scripts: pre-deploy.ps1, migrate.ps1, testForDDL.ps1, and update_fsh_data.ps1
+
+### functions.psm1
+Contains a few helper PowerShell functions that are referenced by the other scripts. Moving al our functions to the psm1 file reduces duplication and helps to keep the other PowerShell scripts shorter and simpler.
+
+### pre-deploy.ps1, create_flyway_schema_history_table.sql, and sp_generate_merge.sql
+pre-deploy.ps1 does the following prep work ahead of the Flyway deployment:
+
+1. Verifies that sp_generate_merge exists on the target database. If not, it deploys it (using sp_generate_merge.sql). This ensures deployments work, regardless of whether the project has been deployed before, or whether sp_generate_merge has since been dropped on the target server.
+1. Verifies the flyway_schema_history table exists on the target database. If not, it redeploys it. If a flyway_schema_history_data.sql script exists in the flyway root (see update_fsh_data.ps1, below), this script is used to populate the flyway_schema_history table with the deployment history data.
+
+### testForDDL.ps1
+This script is intended to verify that none of the pending scripts in the DML directory contain any DDL. As a by-product, it also verifies that the DDL scripts run successfully, which is nice.
+
+This script performs the following steps:
+1. Runs Flyway info against the target database to learn the current version of production, and to get a list of any pending scripts.
+1. Creates a temporary test database, with a timestamp (to the millisecond) in the name (to avoid duplication and enable concurrent builds).
+1. Adds a temporary datareadwrite user to the temp database. Notably, this temporary user only has DML creds, and NOT DDL creds.
+1. Runs flyway migrate on a loop, iterating through all the pending scripts one by one. The DML scripts are executed as the temp "DML only" user. If any of these fail, either there is a bug in the script, or the script contains DDL statements. In either case, the deployment is aborted and someone should take another look at the script. The DDL scripts are executed as the standard Jenkins user, which probably has either dbo or sa credentials. These are mostly included for ordering/dependency purposes to support the testing of the DML scripts, however, this also acts as a useful test that these scripts work too. If any of these fail, they should also be reviewed before retrying the deployment.
+
+### migrate.ps1 and 
+Runs flyway to perform the actual migration.
+
+### update_fsh_data.ps1
+Uses sp_generate_merge.sql to script out the flyway_schema_history data and saves it to a flyway_schema_history_data.sql in the flyway root. Then commits and pushes any updates back to source control so that it's safe and ready for future deploys.
 
 ## To Do: Remaining tasks
 1. Clean up the code. (This version works, but I've gone down a few rabbit holes along the way, and there is probably some redundant code lying around. Also, COMMENTS!)
@@ -60,3 +92,4 @@ To do.
 1. Make the DML user the default, and only use sa if explicitly DML. (What if someone adds another folder?)
 1. What if someone grants more creds to the dml_only user login in between builds? Should we drop/recreate it? Should we update permissions during build to explicitly deny DDL?
 1. Clean up old temp DBs.
+1. Ensure that diff reports are not being commited to source control following the info command in testFortDDL.ps1
