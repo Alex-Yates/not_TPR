@@ -52,7 +52,7 @@ Write-Output "Current git status is..."
 git status
 
 Write-Output "Staging all changes for commit"
-git add .
+git add $flywayHistoryDataScript
 
 Write-Output "Current git status now is as follows. (All changes *should* be added):"
 git status
