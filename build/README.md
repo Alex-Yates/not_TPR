@@ -17,7 +17,7 @@ Below is:
 Flyway is a migration script runner for SQL Server and most other RDBMS platforms. In a flyway project the most important features are:
 - *The flyway.conf file*: specifies various details, including the connection string to the target database, and the locations where any sql scripts are stored.
 - *The migrations folder*: which holds the database migrations scripts. By default, the migrations are stored in a folder called "migrations" in the flyway root. In our case, we save our scripts in either migrations/DDL or migrations/DML.
-The SQL scripts have a speciffic naming convention. For example, V01_2_3__NewTable.sql tells Flyway that:
+The SQL scripts have a specific naming convention. For example, V01_2_3__NewTable.sql tells Flyway that:
 - (V) this is a standard migration script. (Other options are "B" for baseline and "U" for undo).
 - (01_2_3) this script is for version 01.2.3
 - (NewTable) the description is "NewTable"
@@ -70,17 +70,8 @@ pre-deploy.ps1 does the following prep work ahead of the Flyway deployment:
 1. Verifies that sp_generate_merge exists on the target database. If not, it deploys it (using sp_generate_merge.sql). This ensures deployments work, regardless of whether the project has been deployed before, or whether sp_generate_merge has since been dropped on the target server.
 1. Verifies the flyway_schema_history table exists on the target database. If not, it redeploys it. If a flyway_schema_history_data.sql script exists in the flyway root (see update_fsh_data.ps1, below), this script is used to populate the flyway_schema_history table with the deployment history data.
 
-### testForDDL.ps1
-This script is intended to verify that none of the pending scripts in the DML directory contain any DDL. As a by-product, it also verifies that the DDL scripts run successfully, which is nice.
-
-This script performs the following steps:
-1. Runs Flyway info against the target database to learn the current version of production, and to get a list of any pending scripts.
-1. Creates a temporary test database, with a timestamp (to the millisecond) in the name (to avoid duplication and enable concurrent builds).
-1. Adds a temporary datareadwrite user to the temp database. Notably, this temporary user only has DML creds, and NOT DDL creds.
-1. Runs flyway migrate on a loop, iterating through all the pending scripts one by one. The DML scripts are executed as the temp "DML only" user. If any of these fail, either there is a bug in the script, or the script contains DDL statements. In either case, the deployment is aborted and someone should take another look at the script. The DDL scripts are executed as the standard Jenkins user, which probably has either dbo or sa credentials. These are mostly included for ordering/dependency purposes to support the testing of the DML scripts, however, this also acts as a useful test that these scripts work too. If any of these fail, they should also be reviewed before retrying the deployment.
-
 ### migrate.ps1 and 
-Runs flyway to perform the actual migration.
+Runs flyway to perform the actual migration. Scripts saved in "DDL" directories are executed as the default jenkins user (which has admin credentials). Hence, any scripts added to this directory should be reviewed by a DBA. Any other database scripts are executed as a temporary DML only login. These scripts cannot execute DDL changes, and hence do not need to be reviewed by DBAs.
 
 ### update_fsh_data.ps1
 Uses sp_generate_merge.sql to script out the flyway_schema_history data and saves it to a flyway_schema_history_data.sql in the flyway root. Then commits and pushes any updates back to source control so that it's safe and ready for future deploys.
