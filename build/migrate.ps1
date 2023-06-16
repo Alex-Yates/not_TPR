@@ -105,7 +105,6 @@ $pendingMigrations | ForEach-Object {
     else {
         Write-Output "  - $thisVersion may contain contain DDL. Using default login."
     }
-    Write-Output "- Upgrading to $thisVersion"
     Write-Output "- Executing: "
     Write-Output "    & flyway migrate"
     Write-Output "        -workingDirectory=""$gitRoot/$flywayRoot"""
