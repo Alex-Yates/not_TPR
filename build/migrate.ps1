@@ -54,15 +54,21 @@ do {
     $randomString = [System.Web.Security.Membership]::GeneratePassword(15,2) # Generates a 15 char password with 2 special chars
 } until ($randomString -match '\d') # GeneratePassword does not guarantee a number character. If no numbers, try again.
 $dmlLoginPassword = ConvertTo-SecureString $randomString -AsPlainText -Force
-Write-Output "- Creating login dmlChecker login on $serverInstance to verify DML Scripts."
-New-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -SecurePassword $dmlLoginPassword -Force | out-null # Drops and recreates if already exists
-Write-Output "- Creating user dmlChecker user on $serverInstance.$database to verify DML Scripts."
-New-DbaDbUser -SqlInstance $serverInstance -Database $database -Login dmlChecker -Force | out-null # Drops and recreates if already exists
-Write-Output "- Adding db_datareader and db_datawriter roles to user dmlChecker."
-Add-DbaDbRoleMember -SqlInstance $serverInstance -Database $database -Role db_datareader -User dmlChecker -Confirm:$false
-Add-DbaDbRoleMember -SqlInstance $serverInstance -Database $database -Role db_datawriter -User dmlChecker -Confirm:$false
-Remove-DbaDbRoleMember -SqlInstance $serverInstance -Database $database -Role db_ddladmin -User dmlChecker -Confirm:$false
-Write-output ""
+
+$createDmlUserSql = @"
+USE $database;
+IF NOT EXISTS (SELECT * FROM sys.syslogins WHERE name = 'dmlChecker')
+BEGIN
+    CREATE LOGIN dmlChecker WITH PASSWORD = '$dmlLoginPassword';
+END
+CREATE USER dmlChecker FOR LOGIN dmlChecker;
+GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::dbo TO dmlChecker;
+"@
+Write-Output "  Creating a sql login and user on $database with only DML access."
+Remove-DbaDbUser -SqlInstance $serverInstance -User dmlChecker | out-null 
+Remove-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -Force | out-null 
+Invoke-DbaQuery -SqlInstance $serverInstance -Query $createDmlUserSql
+Write-Output ""
 
 Write-Output "Running flyway info to discover pending migrations:"
 Write-Output "- Executing: "
@@ -81,17 +87,25 @@ Write-Output $pendingMigrations | Format-Table -Property version, description, s
 Write-Output ""
 
 Write-Output "Running each pending script against the scratch database, with DML scripts executed as a user with only DML permissions."
-$dmlUrl = $jdbcUrl.replace(";integratedSecurity=true",";integratedSecurity=true;user=dmlChecker;password=$dmlLoginPassword")
+$dmlUrl = $jdbcUrl.replace(";integratedSecurity=true",";integratedSecurity=false;user=dmlChecker;password=$dmlLoginPassword")
 $pendingMigrations | ForEach-Object {
     $thisVersion = $_.version
+    $thisDescription = $_.description
     $isDmlOnly = $true
     if ($_.filepath -like "*\$flywayRoot\migrations\DDL\*"){
         $isDmlOnly = $false
     }
     $thisUrl = $jdbcUrl
+    $versionNumberAndDescriptionAsText = "$thisVersion" + ": $thisDescription"
+    Write-Output "- Upgrading to $versionNumberAndDescriptionAsText"
     if ($isDmlOnly){
         $thisUrl = $dmlUrl
+        Write-Output "  - $thisVersion should NOT contain DDL. Using a DML only login."
     }
+    else {
+        Write-Output "  - $thisVersion may contain contain DDL. Using default login."
+    }
+    Write-Output "- Upgrading to $thisVersion"
     Write-Output "- Executing: "
     Write-Output "    & flyway migrate"
     Write-Output "        -workingDirectory=""$gitRoot/$flywayRoot"""
