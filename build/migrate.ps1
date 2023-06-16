@@ -3,17 +3,21 @@ param (
     $licenceKey = ""
 )
 
+# If any part of the script fails, stop
 $ErrorActionPreference = "stop"
 
-& setx REDGATE_DISABLE_TELEMETRY true # Redgate telemetry slows things down a lot. Disabling it for speed.
+# Redgate telemetry slows things down a lot. Disabling it for speed.
+& setx REDGATE_DISABLE_TELEMETRY true | out-null 
 
+# Managing relative paths to all the necessary files is a pain
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = Split-Path $buildDir -Parent
 $fullyQualifiedFlywayRoot = "$gitRoot\$flywayRoot"
+
+# Importing some dependencies
 Write-Output "Importing helper functions from $buildDir\functions.psm1."
 import-module "$buildDir\functions.psm1"
-
 Write-Output "Importing module dbatools."
 import-module dbatools
 
@@ -68,6 +72,7 @@ Remove-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -Force | out-null
 Invoke-DbaQuery -SqlInstance $serverInstance -Query $createDmlUserSql
 Write-Output ""
 
+# Using "flyway info" command to query flyway_schema_history and source code to get a list of pending migrations and infer whether they are listed for DML or DDL.
 Write-Output "Running flyway info to discover pending migrations:"
 Write-Output "- Executing: "
 Write-Output "    & flyway info"
@@ -84,6 +89,7 @@ Write-Output "- Pending migrations are:"
 Write-Output $pendingMigrations | Format-Table -Property version, description, state, filepath
 Write-Output ""
 
+# Running flyway migrate one migration at a time, using the default user for DDL, but the DML user, with restricted access, for DML
 Write-Output "Running each pending script against the scratch database, with DML scripts executed as a user with only DML permissions."
 $dmlUrl = $jdbcUrl.replace(";integratedSecurity=true",";integratedSecurity=false;user=dmlChecker;password=$dmlLoginPassword")
 $pendingMigrations | ForEach-Object {
@@ -114,6 +120,7 @@ $pendingMigrations | ForEach-Object {
 }
 Write-Output ""
 
+# Cleaning up the DML only login and user. We don't need them any more.
 Write-Output "Removing dmlChecker user and login."
 Remove-DbaDbUser -SqlInstance $serverInstance -User dmlChecker | out-null 
 Remove-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -Force | out-null 
