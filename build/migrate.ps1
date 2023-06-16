@@ -5,8 +5,7 @@ param (
 
 $ErrorActionPreference = "stop"
 
-# Redgate telemetry slows things down a lot. Disabling it for speed.
-& setx REDGATE_DISABLE_TELEMETRY true
+& setx REDGATE_DISABLE_TELEMETRY true # Redgate telemetry slows things down a lot. Disabling it for speed.
 
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
@@ -18,22 +17,20 @@ import-module "$buildDir\functions.psm1"
 Write-Output "Importing module dbatools."
 import-module dbatools
 
+# Using a few functions from $buildDir\functions.psm1 to grab some required info from the flyway.conf file
+$flywayHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -FlywayRoot $fullyQualifiedFlywayRoot
 $jdbcUrl = Get-JdbcUrl -flywayRoot $flywayRoot
-
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
 $database = Get-DatabaseFromJdbcUrl $jdbcUrl
-
-Write-Output "Given parameters:"
-Write-Output "- flywayRoot: $flywayRoot"
-
-$locations = "filesystem:$gitRoot\$flywayRoot\migrations"
 $serverInstance = $server
 if ($instance -notlike ""){
     $serverInstance = "$server\$instance"
 }
-$flywayHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -FlywayRoot $fullyQualifiedFlywayRoot
 
+# Logging a bunch of parameters for convenience/troubleshooting
+Write-Output "Given parameters:"
+Write-Output "- flywayRoot: $flywayRoot"
 Write-Output "Derived parameters:"
 Write-Output "- jdbcUrl:        $jdbcUrl"
 Write-Output "- server:         $server"
@@ -42,19 +39,19 @@ Write-Output "- database:       $database"
 Write-Output "- thisScript:     $thisScript"
 Write-Output "- gitRoot:        $gitRoot"
 Write-Output "- buildDir:       $buildDir"
-Write-Output "- locations:      $locations"
 Write-Output "- serverInstance: $serverInstance"
 Write-Output "- fullyQualifiedFlywayRoot: $fullyQualifiedFlywayRoot"
 Write-Output "- flywayHistoryDataScript:  $flywayHistoryDataScript"
 Write-Output ""
 
-Write-output "Security set up for DML verification:"
+Write-Output "Creating a sql login and user on $database with only DML access."
+# Generate a random password for the DML user. We don't want any humans using this login!
 [Reflection.Assembly]::LoadWithPartialName("System.Web") | out-null
 do {
-    $randomString = [System.Web.Security.Membership]::GeneratePassword(15,2) # Generates a 15 char password with 2 special chars
-} until ($randomString -match '\d') # GeneratePassword does not guarantee a number character. If no numbers, try again.
-$dmlLoginPassword = ConvertTo-SecureString $randomString -AsPlainText -Force
-
+    $randomString = [System.Web.Security.Membership]::GeneratePassword(15,2) # Generates a random 15 char password with 2 special chars
+} until ($randomString -match '\d')                                          # GeneratePassword does not guarantee a number character. If no numbers, try again.
+$dmlLoginPassword = ConvertTo-SecureString $randomString -AsPlainText -Force # Using a secure string to avoid logging plaintext password in public logs
+# A SQL script to create a dmlChecker login/user
 $createDmlUserSql = @"
 USE $database;
 IF NOT EXISTS (SELECT * FROM sys.syslogins WHERE name = 'dmlChecker')
@@ -64,9 +61,10 @@ END
 CREATE USER dmlChecker FOR LOGIN dmlChecker;
 GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::dbo TO dmlChecker;
 "@
-Write-Output "  Creating a sql login and user on $database with only DML access."
-Remove-DbaDbUser -SqlInstance $serverInstance -User dmlChecker | out-null 
-Remove-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -Force | out-null 
+# If login/user already exists, delete, so we can recreate fresh, with known password and expected permissions.
+Remove-DbaDbUser -SqlInstance $serverInstance -User dmlChecker | out-null
+Remove-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -Force | out-null
+# Create login and user, using tsql script above
 Invoke-DbaQuery -SqlInstance $serverInstance -Query $createDmlUserSql
 Write-Output ""
 
