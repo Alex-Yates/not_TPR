@@ -6,6 +6,18 @@ param (
 # If any part of the script fails, stop
 $ErrorActionPreference = "stop"
 
+Write-Output ""
+Write-Output ""
+Write-Output "*****"
+Write-Output ""
+Write-Output "EXECUTING MIGRATE"
+Write-Output "Purpose:"
+Write-Output "- Run pending migrations one at a time"
+Write-Output "- DML scripts executed as a temporary DML only user to ensure no accidental DDL statements skip DBA review"
+Write-Output ""
+Write-Output "-"
+Write-Output ""
+
 # Redgate telemetry slows things down a lot. Disabling it for speed.
 & setx REDGATE_DISABLE_TELEMETRY true | out-null 
 
