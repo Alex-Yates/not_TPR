@@ -78,16 +78,16 @@ Update-FlywaySchemaHistoryDataScript -flywaySchemaHistoryData $flywaySchemaHisto
 Write-Output "Current git status is..."
 git status
 
-Write-Output "Staging all changes for commit"
+Write-Output "Staging FSH data script for commit"
 git add $flywayHistoryDataScript
 
-Write-Output "Current git status now is as follows. (All changes *should* be added):"
+Write-Output "Current git status now is as follows. (Only FSH data script should be added):"
 git status
 
-Write-Output "Commiting all local changes to local repo."
+Write-Output "Commiting FSH data script changes to local repo."
 git commit -m "Jenkins commit. Job name: $jobName. Build number: $buildNumber. Build URL: $buildUrl."
 
-Write-Output "Current git status now is as follows. (All changes *should* be added):"
+Write-Output "Current git status now is as follows:"
 git status
 
 Write-Output "Pushing all local commits to remote branch: $branch"
