@@ -12,16 +12,30 @@ $ErrorActionPreference = "stop"
 # Managing relative paths to all the necessary files is a pain
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
-$gitRoot = Split-Path $buildDir -Parent
-$fullyQualifiedFlywayRoot = "$gitRoot\$flywayRoot"
+$gitRoot = $getLocation = (Get-Location).Path
+$fullyQualifiedFlywayRoot = Join-Path -Path $gitRoot -ChildPath $flywayRoot
+$functionsFile = Join-Path -Path $buildDir -ChildPath "functions.psm1"
+
+# Logging a bunch of parameters for convenience/troubleshooting
+Write-Output "Given parameters:"
+Write-Output "- flywayRoot: $flywayRoot"
+Write-Output "Derived parameters:"
+Write-Output "- thisScript:               $thisScript"
+Write-Output "- buildDir:                 $buildDir"
+Write-Output "- gitRoot:                  $gitRoot"
+Write-Output "- functionsFile:            $functionsFile"
+Write-Output "- fullyQualifiedFlywayRoot: $fullyQualifiedFlywayRoot"
+Write-Output ""
 
 # Importing some dependencies
-Write-Output "Importing helper functions from $buildDir\functions.psm1."
-import-module "$buildDir\functions.psm1"
-Write-Output "Importing module dbatools."
+Write-Output "Importing functions from: $functionsFile"
+import-module $functionsFile
+Write-Output "Importing module dbatools. Info: dbatools.io"
 import-module dbatools
+Write-Output ""
 
 # Using a few functions from $buildDir\functions.psm1 to grab some required info from the flyway.conf file
+Write-Output "Using imported functions to read Flyway.conf file and interpret target SQL Server deploy info."
 $flywayHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -FlywayRoot $fullyQualifiedFlywayRoot
 $jdbcUrl = Get-JdbcUrl -flywayRoot $flywayRoot
 $server = Get-ServerFromJdbcUrl $jdbcUrl
@@ -33,18 +47,12 @@ if ($instance -notlike ""){
 }
 
 # Logging a bunch of parameters for convenience/troubleshooting
-Write-Output "Given parameters:"
-Write-Output "- flywayRoot: $flywayRoot"
-Write-Output "Derived parameters:"
+Write-Output "Info found:"
 Write-Output "- jdbcUrl:        $jdbcUrl"
 Write-Output "- server:         $server"
 Write-Output "- instance:       $instance"
 Write-Output "- database:       $database"
-Write-Output "- thisScript:     $thisScript"
-Write-Output "- gitRoot:        $gitRoot"
-Write-Output "- buildDir:       $buildDir"
 Write-Output "- serverInstance: $serverInstance"
-Write-Output "- fullyQualifiedFlywayRoot: $fullyQualifiedFlywayRoot"
 Write-Output "- flywayHistoryDataScript:  $flywayHistoryDataScript"
 Write-Output ""
 
