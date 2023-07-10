@@ -116,7 +116,7 @@ $pendingMigrations | ForEach-Object {
     $thisVersion = $_.version
     $thisDescription = $_.description
     $isDmlOnly = $true
-    if ($_.filepath -like "*\$flywayRoot\migrations\DDL\*"){
+    if ($_.filepath -replace '/', '\' -like "*\migrations\DDL\*"){
         $isDmlOnly = $false
     }
     $thisUrl = $jdbcUrl
