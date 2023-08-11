@@ -1,5 +1,6 @@
 param (
     $flywayRoot,
+    $cherryPick = "",
     $licenceKey = ""
 )
 
@@ -31,6 +32,7 @@ $functionsFile = Join-Path -Path $buildDir -ChildPath "functions.psm1"
 # Logging a bunch of parameters for convenience/troubleshooting
 Write-Output "Given parameters:"
 Write-Output "- flywayRoot: $flywayRoot"
+Write-Output "- cherryPick: $cherryPick"
 Write-Output "Derived parameters:"
 Write-Output "- thisScript:               $thisScript"
 Write-Output "- buildDir:                 $buildDir"
@@ -68,6 +70,19 @@ Write-Output "- serverInstance: $serverInstance"
 Write-Output "- flywayHistoryDataScript:  $flywayHistoryDataScript"
 Write-Output ""
 
+# Creating a list of CherryPicked Migrations
+$cherryPickList = @()
+$cherryPickSelected = $false
+if ($cherryPick -notlike ""){
+    $cherryPickSelected = $true
+    $cherryPickList += $cherryPick -split ","
+    Write-Output "The following versions have been cherry picked for deployment:"
+    $cherryPickList | ForEach-Object { Write-Output " - $_"}
+}
+else {
+    Write-Output "No specific scripts cherry picked for deployment. Deploying all pending scripts."
+}
+
 Write-Output "Creating a sql login and user on $database with only DML access."
 # Generate a random password for the DML user. We don't want any humans using this login!
 [Reflection.Assembly]::LoadWithPartialName("System.Web") | out-null
@@ -104,15 +119,29 @@ $flywayInfo = (& flyway info -workingDirectory="$gitRoot/$flywayRoot" -configFil
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
 $allMigrations = $flywayInfo.migrations
-$pendingMigrations = $allMigrations | Where-Object {$_.state -like "Pending"}
-Write-Output "- Pending migrations are:"
-Write-Output $pendingMigrations | Format-Table -Property version, description, state, filepath
-Write-Output ""
+Write-Output "- All migrations are:"
+Write-Output $allMigrations | Format-Table -Property version, description, state, filepath
+
+$migrationsForDeployment = @()
+if ($cherryPickSelected){
+    $cherryPickedMigrations = $allMigrations | Where-Object {$cherryPickList -contains $_.version}
+    Write-Output "- Cherry Picked migrations are:"
+    Write-Output $cherryPickedMigrations | Format-Table -Property version, description, state, filepath
+    $migrationsForDeployment = $cherryPickedMigrations
+    Write-Output ""
+}
+else {
+    $pendingMigrations = $allMigrations | Where-Object {$_.state -like "Pending"}
+    Write-Output "- Pending migrations are:"
+    Write-Output $pendingMigrations | Format-Table -Property version, description, state, filepath
+    $migrationsForDeployment = $pendingMigrations
+    Write-Output ""
+}
 
 # Running flyway migrate one migration at a time, using the default user for DDL, but the DML user, with restricted access, for DML
 Write-Output "Running each pending script against the scratch database, with DML scripts executed as a user with only DML permissions."
 $dmlUrl = $jdbcUrl.replace(";integratedSecurity=true",";integratedSecurity=false;user=dmlChecker;password=$dmlLoginPassword")
-$pendingMigrations | ForEach-Object {
+$migrationsForDeployment | ForEach-Object {
     $thisVersion = $_.version
     $thisDescription = $_.description
     $isDmlOnly = $true
@@ -121,7 +150,7 @@ $pendingMigrations | ForEach-Object {
     }
     $thisUrl = $jdbcUrl
     $versionNumberAndDescriptionAsText = "$thisVersion" + ": $thisDescription"
-    Write-Output "- Upgrading to $versionNumberAndDescriptionAsText"
+    Write-Output "- Deploying script $versionNumberAndDescriptionAsText"
     if ($isDmlOnly){
         $thisUrl = $dmlUrl
         Write-Output "  - $thisVersion should NOT contain DDL. Using a DML only login."
@@ -134,11 +163,20 @@ $pendingMigrations | ForEach-Object {
     Write-Output "        -workingDirectory=""$gitRoot/$flywayRoot"""
     Write-Output "        -configFiles=""$gitRoot/$flywayRoot/flyway.conf"""
     Write-Output "        -url=""$thisUrl"""
-    Write-Output "        -target=""$thisVersion"""
+    Write-Output "        -cherryPick=""$thisVersion"""
     Write-Output "        -licenseKey=***"
-    & flyway migrate -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -url="$thisUrl" -target="$thisVersion" -licenseKey="$licenceKey"
+    & flyway migrate -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -url="$thisUrl" -cherryPick="$thisVersion" -licenseKey="$licenceKey"
 }
 Write-Output ""
+
+# Logging the current deployment status
+Write-Output "Running Flyway info one more time, to log the current state post migration."
+$flywayInfo = (& flyway info -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -outputType="Json" -licenseKey="$licenceKey") | ConvertFrom-Json
+$currentVersion = $flywayInfo.schemaVersion
+Write-Output "- CurrentVersion is: $currentVersion"
+$allMigrations = $flywayInfo.migrations
+Write-Output "- All migrations are:"
+Write-Output $allMigrations | Format-Table -Property version, description, state, filepath
 
 # Cleaning up the DML only login and user. We don't need them any more.
 Write-Output "Removing dmlChecker user and login."
