@@ -83,7 +83,7 @@ BEGIN
     CREATE LOGIN dmlChecker WITH PASSWORD = '$dmlLoginPassword';
 END
 CREATE USER dmlChecker FOR LOGIN dmlChecker;
-GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::dbo TO dmlChecker;
+GRANT SELECT, INSERT, UPDATE, DELETE TO dmlChecker;
 "@
 # If login/user already exists, delete, so we can recreate fresh, with known password and expected permissions.
 Remove-DbaDbUser -SqlInstance $serverInstance -User dmlChecker | out-null
@@ -116,7 +116,7 @@ $pendingMigrations | ForEach-Object {
     $thisVersion = $_.version
     $thisDescription = $_.description
     $isDmlOnly = $true
-    if ($_.filepath -replace '/', '\' -like "*\migrations\DDL\*"){
+    if ($_.filepath -replace '/', '\' -like "*\migrations\ddl\*"){
         $isDmlOnly = $false
     }
     $thisUrl = $jdbcUrl
