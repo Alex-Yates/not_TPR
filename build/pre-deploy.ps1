@@ -46,7 +46,7 @@ Write-Output ""
 # Using a few functions from $buildDir\functions.psm1 to grab some required info from the flyway.conf file
 Write-Output "Using imported functions to read Flyway.conf file and interpret target SQL Server deploy info."
 $flywayHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -FlywayRoot $fullyQualifiedFlywayRoot
-$jdbcUrl = Get-JdbcUrl -flywayRoot "$flywayRoot"
+$jdbcUrl = Get-JdbcUrl -flywayRoot $flywayRoot
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
 $database = Get-DatabaseFromJdbcUrl $jdbcUrl
