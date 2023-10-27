@@ -9,6 +9,19 @@ function Get-JdbcUrl {
     return $jdbcUrl
 }
 
+function Get-SideCarJdbcUrl {
+    param (
+        [Parameter(Mandatory=$true)]$flywayRoot
+    )
+    $jdbcUrl = ""
+    $confFile = Get-Content "./$flywayRoot/flyway.conf"
+    $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flywaySideCarUrl=jdbc:sqlserver://*"}
+    if ($jdbcUrlRow) {
+        $jdbcUrl = (($jdbcUrlRow.Replace("flywaySideCarUrl=","")).Trim()).Replace('"',"")
+    }
+    return $jdbcUrl
+}
+
 function Get-ServerFromJdbcUrl {
     param (
         [Parameter(Mandatory=$true)]$url
@@ -40,26 +53,6 @@ function Get-DatabaseFromJdbcUrl {
     return $databaseName
 }
 
-
-function Test-SpGenerateMergeExists {
-    param (
-        [Parameter(Mandatory=$true)]$serverInstance
-    )
-    $spGenerateMerge = Get-DbaDbStoredProcedure -SqlInstance $serverInstance -Database master -Name sp_generate_merge
-    if ($spGenerateMerge){
-        return $true
-    }
-    return $false
-}
-
-function New-SpGenerateMerge {
-    param (
-        [Parameter(Mandatory=$true)]$serverInstance,
-        [Parameter(Mandatory=$true)]$buildDir
-    )
-    Invoke-DbaQuery -SqlInstance $serverInstance -File "$buildDir\sp_generate_merge.sql"
-}
-
 function Test-FlywaySchemaHistoryTableExists {
     param (
         [Parameter(Mandatory=$true)]$serverInstance,
@@ -72,84 +65,80 @@ function Test-FlywaySchemaHistoryTableExists {
     return $false
 }
 
-function New-FlywaySchemaHistoryTable {
+function Test-SideCarFlywaySchemaHistoryTableExists {
     param (
         [Parameter(Mandatory=$true)]$serverInstance,
-        [Parameter(Mandatory=$true)]$database,
-        [Parameter(Mandatory=$true)]$buildDir
+        [Parameter(Mandatory=$true)]$sideCarDatabase,
+        [Parameter(Mandatory=$true)]$deploymentDatabase
     )
-    Invoke-DbaQuery -SqlInstance $serverInstance -database $database -File "$buildDir\create_flyway_schema_history_table.sql"
-}
-
-function Update-FlywaySchemaHistoryTable {
-    param (
-        [Parameter(Mandatory=$true)]$serverInstance,
-        [Parameter(Mandatory=$true)]$database,
-        [Parameter(Mandatory=$true)]$flywayRoot
-    )
-    $flywaySchemaHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -flywayRoot $flywayRoot
-    Invoke-DbaQuery -SqlInstance $serverInstance -database $database -File $flywaySchemaHistoryDataScript 
-}
-
-function  Get-FlywaySchemaHistoryDataScriptPath {
-    param (
-        [Parameter(Mandatory=$true)]$flywayRoot
-    )
-    $FlywaySchemaHistoryDataScriptPath = "$flywayRoot\flyway_schema_history_data.sql"
-    return $FlywaySchemaHistoryDataScriptPath
-}
-
-function Test-FlywaySchemaHistoryDataScriptExists {
-    param (
-        [Parameter(Mandatory=$true)]$flywayRoot
-    )
-    $flywaySchemaHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -flywayRoot $flywayRoot
-    if (Test-Path $flywaySchemaHistoryDataScript){
+    $flywaySchemaHistoryTable = Get-DbaDbTable -SqlInstance $serverInstance -Database $sideCarDatabase -Table flyway_schema_history_$deploymentDatabase
+    if ($flywaySchemaHistoryTable){
         return $true
     }
     return $false
 }
 
-function New-FlywaySchemaHistoryDataScript {
+function New-SideCarFlywaySchemaHistoryTable {
     param (
-        [Parameter(Mandatory=$true)]$flywayRoot
+        [Parameter(Mandatory=$true)]$serverInstance,
+        [Parameter(Mandatory=$true)]$sideCarDatabase,
+        [Parameter(Mandatory=$true)]$deploymentDatabase
     )
-    $flywaySchemaHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -flywayRoot $flywayRoot
-    New-Item -Type File -Path $flywaySchemaHistoryDataScript | out-null
+
+    $createSideCarFshTableSql = @"
+    /****** Object:  Table [dbo].[flyway_schema_history_$deploymentDatabase]    Script Date: 2/23/2023 12:25:13 PM ******/
+    SET ANSI_NULLS ON
+    GO
+    
+    SET QUOTED_IDENTIFIER ON
+    GO
+    
+    CREATE TABLE [dbo].[flyway_schema_history_$deploymentDatabase](
+        [installed_rank] [int] NOT NULL,
+        [version] [nvarchar](50) NULL,
+        [description] [nvarchar](200) NULL,
+        [type] [nvarchar](20) NOT NULL,
+        [script] [nvarchar](1000) NOT NULL,
+        [checksum] [int] NULL,
+        [installed_by] [nvarchar](100) NOT NULL,
+        [installed_on] [datetime] NOT NULL,
+        [execution_time] [int] NOT NULL,
+        [success] [bit] NOT NULL,
+     CONSTRAINT [flyway_schema_history_pk] PRIMARY KEY CLUSTERED 
+    (
+        [installed_rank] ASC
+    )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+    ) ON [PRIMARY]
+    GO
+    
+    ALTER TABLE [dbo].[flyway_schema_history_$deploymentDatabase] ADD  DEFAULT (getdate()) FOR [installed_on]
+    GO
+"@
+    Invoke-DbaQuery -SqlInstance $serverInstance -database $sideCarDatabase -Query $createSideCarFshTableSql
 }
 
-function Update-FlywaySchemaHistoryDataScript {
-    param (
-        [Parameter(Mandatory=$true)]$flywaySchemaHistoryData,
-        [Parameter(Mandatory=$true)]$flywayRoot
-    )
-    $flywaySchemaHistoryDataScript = Get-FlywaySchemaHistoryDataScriptPath -flywayRoot $flywayRoot
-    $flywaySchemaHistoryData | Set-Content -Path $flywaySchemaHistoryDataScript
-}
-
-function Get-FlywaySchemaHistoryData {
+function Test-FlywaySchemaHistoryViewExists {
     param (
         [Parameter(Mandatory=$true)]$serverInstance,
         [Parameter(Mandatory=$true)]$database
     )
-
-    if (-not (Test-FlywaySchemaHistoryTableExists -serverInstance $serverInstance -database $database)){
-        Write-Error "Flyway schema history table does not exist in database $database on server\instance $serverInstance"
+    $flywaySchemaHistoryView = Get-DbaDbView -SqlInstance $serverInstance -Database $database -View flyway_schema_history
+    if ($flywaySchemaHistoryView){
+        return $true
     }
-    $query = "EXEC $database" + ".dbo.sp_generate_merge 'flyway_schema_history'"
-    $rawData = Invoke-DbaQuery -SqlInstance $serverInstance -Query $query
+    return $false
+}
 
-    # $rawData is in an annoying object format. Converting to a simple string.
-    $rawDataAsString = $rawData.Column1.toString()
-
-    # The first 7 chars are unnecessary and illegal T-SQL syntax ("<?x ---") 
-    $partlyCleanData = $rawDataAsString.subString(7)
-
-    # The last 2 chars are also unnecessary and illegal T-SQL syntax  ("?>")
-    $cleanDataWithAnnoyingWhitespace = $partlyCleanData.Substring(0,$partlyCleanData.Length-2) 
-
-    # The script is fine now, but there's still some annoying whitespace at either end. Let's remove it.
-    $cleanData = $cleanDataWithAnnoyingWhitespace.Trim()
-
-    return $cleanData
+function New-FlywaySchemaHistoryView {
+    param (
+        [Parameter(Mandatory=$true)]$serverInstance,
+        [Parameter(Mandatory=$true)]$sideCarDatabase,
+        [Parameter(Mandatory=$true)]$deploymentDatabase
+    )
+    $createViewSql = @"
+	CREATE VIEW [dbo].[flyway_schema_history]
+	AS 
+	SELECT * FROM $sideCarDatabase.dbo.flyway_schema_history_$deploymentDatabase
+"@
+    Invoke-DbaQuery -SqlInstance $serverInstance -database $deploymentDatabase -Query $createViewSql
 }
