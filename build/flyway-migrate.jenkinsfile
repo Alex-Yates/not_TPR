@@ -10,31 +10,13 @@ pipeline {
         choice(name: 'FLYWAYROOT', choices: ['dev','prod'], description: 'The relative path from git root to the root of the Flyway project.')
         string(name: 'BUILDROOT', defaultValue: 'build', description: 'The relative path from git root to the build directory.')
     }
-	
-    // The tasks that Jenkins will complete.
-	stages {
-        stage('Pre-deploy prep') {
-            steps {
-                // Verifies the existence of sp_generate_merge and the FlywaySchemaHistory table.
-                powershell "./${params.BUILDROOT}/pre-deploy.ps1 -flywayRoot ${params.FLYWAYROOT}"
-            }
-        }
 
-        stage('Flyway migrate') {
-            steps {
-                // Executes the deployment, using flyway migrate
-                withCredentials([string(credentialsId: 'Flyway_License_Key', variable: 'FLYWAY_LICENCE')]) {
-					powershell "./${params.BUILDROOT}/migrate.ps1 -flywayRoot ${params.FLYWAYROOT} -licenceKey ${FLYWAY_LICENCE}"
-                }
-			}
-        }
-
-        stage('Backup Flyway Schema History to git') {
-            steps {
-                // Uses sp_generage_merge to read the data in the flyway_schema_history table, and save a copy to source control.
-                // We do this so that if the flyway_schema_history table is droped in production, we have all the data we need to rebuild it before our next deployment. 
-                powershell "./${params.BUILDROOT}/update_fsh_data.ps1 -flywayRoot ${params.FLYWAYROOT} -jobName ${env.JOB_NAME} -buildNumber ${env.BUILD_NUMBER} -buildUrl ${env.BUILD_URL} -branch ${params.BRANCH}"
+    stage('Flyway migrate') {
+        steps {
+            // Executes the deployment, using flyway migrate
+            withCredentials([string(credentialsId: 'Flyway_License_Key', variable: 'FLYWAY_LICENCE')]) {
+				powershell "./${params.BUILDROOT}/migrate.ps1 -flywayRoot ${params.FLYWAYROOT} -licenceKey ${FLYWAY_LICENCE}"
             }
-        }
+		}
     }
 }
