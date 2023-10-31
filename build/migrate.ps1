@@ -137,7 +137,7 @@ else {
 }
 
 # Running flyway migrate one migration at a time, using the default user for DDL, but the DML user, with restricted access, for DML
-Write-Output "Running each pending script against the scratch database, with DML scripts executed as a user with only DML permissions."
+Write-Output "Running flyway migrate one migration at a time, using the default user for DDL, but the DML user, with restricted access, for DML."
 $dmlUrl = $jdbcUrl.replace(";integratedSecurity=true",";integratedSecurity=false;user=dmlChecker;password=$dmlLoginPassword")
 $migrationsForDeployment | ForEach-Object {
     $thisVersion = $_.version
