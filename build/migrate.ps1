@@ -113,7 +113,7 @@ Write-Output "        -workingDirectory=""$gitRoot/$flywayRoot"""
 Write-Output "        -configFiles=""$gitRoot/$flywayRoot/flyway.conf"""
 Write-Output "        -outputType=""Json"""
 Write-Output "        -licenseKey=***"
-$flywayInfo = (& flyway info -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -outputType="Json" -licenseKey="$licenceKey") | ConvertFrom-Json
+$flywayInfo = (Invoke-Expression "& flyway info -workingDirectory=`"$gitRoot/$flywayRoot`" -configFiles=`"$gitRoot/$flywayRoot/flyway.conf`" -outputType=`"Json`" -licenseKey=$licenceKey") | ConvertFrom-Json
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
 $allMigrations = $flywayInfo.migrations
