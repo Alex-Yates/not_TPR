@@ -98,6 +98,22 @@ END
 CREATE USER dmlChecker FOR LOGIN dmlChecker;
 GRANT SELECT, INSERT, UPDATE, DELETE TO dmlChecker;
 "@
+$sideCarUrl = Get-SideCarJdbcUrl -flywayRoot $flywayRoot
+if ($sideCarUrl -like ""){
+    Write-Output "No sidecar required"
+}
+else {
+    $sideCarDatabase = Get-DatabaseFromJdbcUrl $sideCarUrl
+    $createDmlUserSql = @"
+    $createDmlUserSql
+    USE $sideCarDatabase;
+    CREATE USER dmlChecker FOR LOGIN dmlChecker;
+    GRANT SELECT, INSERT, UPDATE, DELETE TO dmlChecker;
+"@
+    Write-Output "Sidecar required. Ensuring DML user is also created on sidecar DB."
+}
+
+
 # If login/user already exists, delete, so we can recreate fresh, with known password and expected permissions.
 Remove-DbaDbUser -SqlInstance $serverInstance -User dmlChecker | out-null
 Remove-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -Force | out-null
