@@ -15,7 +15,7 @@ function Get-SideCarJdbcUrl {
     )
     $jdbcUrl = ""
     $confFile = Get-Content "./$flywayRoot/flyway.conf"
-    $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flywaySideCarUrl=jdbc:sqlserver://*"}
+    $jdbcUrlRow = $confFile | Where-Object {$_ -like "flywaySideCarUrl=jdbc:sqlserver://*"}
     if ($jdbcUrlRow) {
         $jdbcUrl = (($jdbcUrlRow.Replace("flywaySideCarUrl=","")).Trim()).Replace('"',"")
     }
