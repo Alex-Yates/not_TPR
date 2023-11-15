@@ -1,0 +1,237 @@
+{
+  "individualResults": [
+    {
+      "initialSchemaVersion": "001.0.20230213105117",
+      "targetSchemaVersion": "010.0.20230308154100",
+      "schemaName": "",
+      "migrations": [
+        {
+          "category": "Versioned",
+          "version": "010.0.20230308154100",
+          "description": "MAIN - PrintingStuff2",
+          "type": "SQL",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V010_0_20230308154100__MAIN - PrintingStuff2.sql",
+          "executionTime": 41
+        }
+      ],
+      "migrationsExecuted": 1,
+      "success": true,
+      "flywayVersion": "9.18.0",
+      "database": "not_tpr_prod",
+      "warnings": [
+        "outOfOrder mode is active. Migration of schema [dbo] may not be reproducible."
+      ],
+      "timestamp": "2023-11-15T21:10:11.969823700",
+      "operation": "migrate",
+      "exception": null,
+      "licenseFailed": false
+    },
+    {
+      "initialSchemaVersion": "001.0.20230213105117",
+      "targetSchemaVersion": "010.0.20230317154100",
+      "schemaName": "",
+      "migrations": [
+        {
+          "category": "Versioned",
+          "version": "010.0.20230317154100",
+          "description": "MAIN - PrintingStuff3",
+          "type": "SQL",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V010_0_20230317154100__MAIN - PrintingStuff3.sql",
+          "executionTime": 18
+        }
+      ],
+      "migrationsExecuted": 1,
+      "success": true,
+      "flywayVersion": "9.18.0",
+      "database": "not_tpr_prod",
+      "warnings": [
+        "outOfOrder mode is active. Migration of schema [dbo] may not be reproducible."
+      ],
+      "timestamp": "2023-11-15T21:10:16.969004600",
+      "operation": "migrate",
+      "exception": null,
+      "licenseFailed": false
+    },
+    {
+      "schemaVersion": "010.0.20230317154100",
+      "schemaName": "",
+      "migrations": [
+        {
+          "category": "Baseline",
+          "version": "001.0.20230213105117",
+          "rawVersion": "001.0.20230213105117",
+          "description": "initial create of DB objects",
+          "type": "SQL_BASELINE",
+          "installedOnUTC": "2023-11-15T21:09:00.977Z",
+          "state": "Baseline",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\B001_0_20230213105117__initial create of DB objects.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 13
+        },
+        {
+          "category": "Versioned",
+          "version": "002.0.20230214133913",
+          "rawVersion": "002.0.20230214133913",
+          "description": "MAIN - Create new table on main",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:07.343Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V002_0_20230214133913__MAIN - Create new table on main.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 21
+        },
+        {
+          "category": "Versioned",
+          "version": "002.1.20230214133913",
+          "rawVersion": "002.1.20230214133913",
+          "description": "QA4 - Create new table on qa4",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:13.857Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V002_1_20230214133913__QA4 - Create new table on qa4.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 29
+        },
+        {
+          "category": "Versioned",
+          "version": "003.0.20230214211800",
+          "rawVersion": "003.0.20230214211800",
+          "description": "MAIN - Create new table on main",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:20.963Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V003_0_20230214211800__MAIN - Create new table on main.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 22
+        },
+        {
+          "category": "Versioned",
+          "version": "004.0.20230214211800",
+          "rawVersion": "004.0.20230214211800",
+          "description": "MAIN - THATS NUMBERWANG",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:28.240Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V004_0_20230214211800__MAIN - THATS NUMBERWANG.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 22
+        },
+        {
+          "category": "Versioned",
+          "version": "005.0.20230303211800",
+          "rawVersion": "005.0.20230303211800",
+          "description": "MAIN - TheMeaningOfLife",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:35.260Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V005_0_20230303211800__MAIN - TheMeaningOfLife.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 18
+        },
+        {
+          "category": "Versioned",
+          "version": "006.0.20230308154000",
+          "rawVersion": "006.0.20230308154000",
+          "description": "MAIN - SelectingStuff",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:42.057Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V006_0_20230308154000__MAIN - SelectingStuff.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 20
+        },
+        {
+          "category": "Versioned",
+          "version": "007.0.20230308154100",
+          "rawVersion": "007.0.20230308154100",
+          "description": "MAIN - PrintingStuff",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:49.353Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V007_0_20230308154100__MAIN - PrintingStuff.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 21
+        },
+        {
+          "category": "Versioned",
+          "version": "008.0.20230303211800",
+          "rawVersion": "008.0.20230303211800",
+          "description": "MAIN - TheMeaningOfLife2",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:09:56.287Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V008_0_20230303211800__MAIN - TheMeaningOfLife2.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 23
+        },
+        {
+          "category": "Versioned",
+          "version": "009.0.20230308154000",
+          "rawVersion": "009.0.20230308154000",
+          "description": "MAIN - SelectingStuff2",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:10:03.993Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V009_0_20230308154000__MAIN - SelectingStuff2.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 38
+        },
+        {
+          "category": "Versioned",
+          "version": "010.0.20230308154100",
+          "rawVersion": "010.0.20230308154100",
+          "description": "MAIN - PrintingStuff2",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:10:12.833Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V010_0_20230308154100__MAIN - PrintingStuff2.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 41
+        },
+        {
+          "category": "Versioned",
+          "version": "010.0.20230317154100",
+          "rawVersion": "010.0.20230317154100",
+          "description": "MAIN - PrintingStuff3",
+          "type": "SQL",
+          "installedOnUTC": "2023-11-15T21:10:17.600Z",
+          "state": "Success",
+          "undoable": "No",
+          "filepath": "C:\\git\\not_TPR\\prod\\migrations\\DDL\\V010_0_20230317154100__MAIN - PrintingStuff3.sql",
+          "undoFilepath": "",
+          "installedBy": "DESKTOP-PO8SQUD\\ajyma",
+          "executionTime": 18
+        }
+      ],
+      "flywayVersion": "9.18.0",
+      "database": "not_tpr_prod",
+      "allSchemasEmpty": false,
+      "timestamp": "2023-11-15T21:10:22.036991700",
+      "operation": "info",
+      "exception": null,
+      "licenseFailed": false
+    }
+  ]
+}

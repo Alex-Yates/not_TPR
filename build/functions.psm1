@@ -104,7 +104,7 @@ function New-SideCarFlywaySchemaHistoryTable {
         [installed_on] [datetime] NOT NULL,
         [execution_time] [int] NOT NULL,
         [success] [bit] NOT NULL,
-     CONSTRAINT [flyway_schema_history_$deploymentDatabase_pk] PRIMARY KEY CLUSTERED 
+     CONSTRAINT [flyway_schema_history_${deploymentDatabase}_pk] PRIMARY KEY CLUSTERED 
     (
         [installed_rank] ASC
     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
