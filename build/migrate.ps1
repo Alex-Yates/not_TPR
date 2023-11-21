@@ -19,6 +19,9 @@ Write-Output ""
 Write-Output "-"
 Write-Output ""
 
+Write-Output "PowerShell version:"
+$PsVersionTable | Format-Table
+
 # Redgate telemetry slows things down a lot. Disabling it for speed.
 & setx REDGATE_DISABLE_TELEMETRY true | out-null 
 
