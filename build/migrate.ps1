@@ -74,7 +74,7 @@ Write-Output ""
 # Creating a list of CherryPicked Migrations
 $cherryPickList = @()
 $cherryPickSelected = $false
-if (-not ([string]::IsNullOrEmpty($cherryPick))){
+if ( -not ( ([string]::IsNullOrEmpty($cherryPick)) -or ($cherryPick -like "null") ) ){
     $cherryPickSelected = $true
     $cherryPickList += $cherryPick -split ","
     Write-Output "The following versions have been cherry picked for deployment:"
