@@ -1,5 +1,4 @@
 param (
-    $flywayRoot,
     $cherryPick = "",
     $licenseKey = ""
 )
@@ -28,19 +27,16 @@ $PsVersionTable | Format-Table
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = $getLocation = (Get-Location).Path
-$fullyQualifiedFlywayRoot = Join-Path -Path $gitRoot -ChildPath $flywayRoot
 $functionsFile = Join-Path -Path $buildDir -ChildPath "functions.psm1"
 
 # Logging a bunch of parameters for convenience/troubleshooting
 Write-Output "Given parameters:"
-Write-Output "- flywayRoot: $flywayRoot"
 Write-Output "- cherryPick: $cherryPick"
 Write-Output "Derived parameters:"
 Write-Output "- thisScript:               $thisScript"
 Write-Output "- buildDir:                 $buildDir"
 Write-Output "- gitRoot:                  $gitRoot"
 Write-Output "- functionsFile:            $functionsFile"
-Write-Output "- fullyQualifiedFlywayRoot: $fullyQualifiedFlywayRoot"
 Write-Output ""
 
 # Importing some dependencies
@@ -52,7 +48,7 @@ Write-Output ""
 
 # Using a few functions from $buildDir\functions.psm1 to grab some required info from the flyway.conf file
 Write-Output "Using imported functions to read Flyway.conf file and interpret target SQL Server deploy info."
-$jdbcUrl = Get-JdbcUrl -flywayRoot $flywayRoot
+$jdbcUrl = Get-JdbcUrl
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
 $database = Get-DatabaseFromJdbcUrl $jdbcUrl
@@ -100,7 +96,7 @@ END
 CREATE USER dmlChecker FOR LOGIN dmlChecker;
 GRANT SELECT, INSERT, UPDATE, DELETE TO dmlChecker;
 "@
-$sideCarUrl = Get-SideCarJdbcUrl -flywayRoot $flywayRoot
+$sideCarUrl = Get-SideCarJdbcUrl
 if ($sideCarUrl -like ""){
     Write-Output "No sidecar required"
 }
@@ -127,11 +123,11 @@ Write-Output ""
 Write-Output "Running flyway info to discover pending migrations:"
 Write-Output "- Executing: "
 Write-Output "    & flyway info"
-Write-Output "        -workingDirectory=""$gitRoot/$flywayRoot"""
-Write-Output "        -configFiles=""$gitRoot/$flywayRoot/flyway.conf"""
+Write-Output "        -workingDirectory=""$gitRoot"""
+Write-Output "        -configFiles=""$gitRoot/flyway.conf"""
 Write-Output "        -outputType=""Json"""
 Write-Output "        -licenseKey=***"
-$flywayInfo = (Invoke-Expression "& flyway info -workingDirectory=`"$gitRoot/$flywayRoot`" -configFiles=`"$gitRoot/$flywayRoot/flyway.conf`" -outputType=`"Json`" -licenseKey=$licenseKey") | ConvertFrom-Json
+$flywayInfo = (Invoke-Expression "& flyway info -workingDirectory=`"$gitRoot`" -configFiles=`"$gitRoot/flyway.conf`" -outputType=`"Json`" -licenseKey=$licenseKey") | ConvertFrom-Json
 $flywayInfo
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
@@ -177,12 +173,12 @@ $migrationsForDeployment | ForEach-Object {
     }
     Write-Output "- Executing: "
     Write-Output "    & flyway migrate"
-    Write-Output "        -workingDirectory=""$gitRoot/$flywayRoot"""
-    Write-Output "        -configFiles=""$gitRoot/$flywayRoot/flyway.conf"""
+    Write-Output "        -workingDirectory=""$gitRoot"""
+    Write-Output "        -configFiles=""$gitRoot/flyway.conf"""
     Write-Output "        -url=""$thisUrl"""
     Write-Output "        -cherryPick=""$thisVersion"""
     Write-Output "        -licenseKey=***"
-    & flyway migrate -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -url="$thisUrl" -cherryPick="$thisVersion" -licenseKey="$licenseKey"
+    & flyway migrate -workingDirectory="$gitRoot" -configFiles="$gitRoot/flyway.conf" -url="$thisUrl" -cherryPick="$thisVersion" -licenseKey="$licenseKey"
 if ($LastExitCode -ne 0) {
   exit 1
 }    
@@ -191,7 +187,7 @@ Write-Output ""
 
 # Logging the current deployment status
 Write-Output "Running Flyway info one more time, to log the current state post migration."
-$flywayInfo = (& flyway info -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -outputType="Json" -licenseKey="$licenseKey") | ConvertFrom-Json
+$flywayInfo = (& flyway info -workingDirectory="$gitRoot" -configFiles="$gitRoot/flyway.conf" -outputType="Json" -licenseKey="$licenseKey") | ConvertFrom-Json
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
 $allMigrations = $flywayInfo.migrations

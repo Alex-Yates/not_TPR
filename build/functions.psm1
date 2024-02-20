@@ -1,8 +1,5 @@
 function Get-JdbcUrl {
-    param (
-        [Parameter(Mandatory=$true)]$flywayRoot
-    )
-    $confFile = Get-Content "./$flywayRoot/flyway.conf"
+    $confFile = Get-Content "./flyway.conf"
     $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flyway.url=jdbc:sqlserver://*"}
     $jdbcUrl = (($jdbcUrlRow.Replace("flyway.url=","")).Trim()).Replace('"',"")
 
@@ -10,11 +7,8 @@ function Get-JdbcUrl {
 }
 
 function Get-SideCarJdbcUrl {
-    param (
-        [Parameter(Mandatory=$true)]$flywayRoot
-    )
     $jdbcUrl = ""
-    $confFile = Get-Content "./$flywayRoot/flyway.conf"
+    $confFile = Get-Content "./flyway.conf"
     $jdbcUrlRow = $confFile | Where-Object {$_ -like "flywaySideCarUrl=jdbc:sqlserver://*"}
     if ($jdbcUrlRow) {
         $jdbcUrl = (($jdbcUrlRow.Replace("flywaySideCarUrl=","")).Trim()).Replace('"',"")

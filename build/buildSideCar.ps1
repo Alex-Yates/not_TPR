@@ -1,12 +1,7 @@
-param (
-    $flywayRoot
-)
-
 # Managing relative paths to all the necessary files is a pain
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = $getLocation = (Get-Location).Path
-$fullyQualifiedFlywayRoot = Join-Path -Path $gitRoot -ChildPath $flywayRoot
 $functionsFile = Join-Path -Path $buildDir -ChildPath "functions.psm1"
 
 # Importing some dependencies
@@ -16,8 +11,8 @@ Write-Output "Importing module dbatools. Info: dbatools.io"
 import-module dbatools
 
 # Reading target JDBC URLs
-$jdbcUrl = Get-JdbcUrl -flywayRoot $flywayRoot
-$sideCarUrl = Get-SideCarJdbcUrl -flywayRoot $flywayRoot
+$jdbcUrl = Get-JdbcUrl
+$sideCarUrl = Get-SideCarJdbcUrl
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
 $database = Get-DatabaseFromJdbcUrl $jdbcUrl
