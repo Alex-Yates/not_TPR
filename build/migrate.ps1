@@ -1,9 +1,8 @@
 param (
     $flywayRoot,
     $cherryPick = "",
-    $licenceKey = ""
+    $licenseKey = ""
 )
-
 # If any part of the script fails, stop
 $ErrorActionPreference = "stop"
 
@@ -132,7 +131,8 @@ Write-Output "        -workingDirectory=""$gitRoot/$flywayRoot"""
 Write-Output "        -configFiles=""$gitRoot/$flywayRoot/flyway.conf"""
 Write-Output "        -outputType=""Json"""
 Write-Output "        -licenseKey=***"
-$flywayInfo = (Invoke-Expression "& flyway info -workingDirectory=`"$gitRoot/$flywayRoot`" -configFiles=`"$gitRoot/$flywayRoot/flyway.conf`" -outputType=`"Json`" -licenseKey=$licenceKey") | ConvertFrom-Json
+$flywayInfo = (Invoke-Expression "& flyway info -workingDirectory=`"$gitRoot/$flywayRoot`" -configFiles=`"$gitRoot/$flywayRoot/flyway.conf`" -outputType=`"Json`" -licenseKey=$licenseKey") | ConvertFrom-Json
+$flywayInfo
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
 $allMigrations = $flywayInfo.migrations
@@ -182,13 +182,16 @@ $migrationsForDeployment | ForEach-Object {
     Write-Output "        -url=""$thisUrl"""
     Write-Output "        -cherryPick=""$thisVersion"""
     Write-Output "        -licenseKey=***"
-    & flyway migrate -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -url="$thisUrl" -cherryPick="$thisVersion" -licenseKey="$licenceKey"
+    & flyway migrate -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -url="$thisUrl" -cherryPick="$thisVersion" -licenseKey="$licenseKey"
+if ($LastExitCode -ne 0) {
+  exit 1
+}    
 }
 Write-Output ""
 
 # Logging the current deployment status
 Write-Output "Running Flyway info one more time, to log the current state post migration."
-$flywayInfo = (& flyway info -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -outputType="Json" -licenseKey="$licenceKey") | ConvertFrom-Json
+$flywayInfo = (& flyway info -workingDirectory="$gitRoot/$flywayRoot" -configFiles="$gitRoot/$flywayRoot/flyway.conf" -outputType="Json" -licenseKey="$licenseKey") | ConvertFrom-Json
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
 $allMigrations = $flywayInfo.migrations
@@ -199,3 +202,4 @@ Write-Output $allMigrations | Format-Table -Property version, description, state
 Write-Output "Removing dmlChecker user and login."
 Remove-DbaDbUser -SqlInstance $serverInstance -User dmlChecker | out-null 
 Remove-DbaLogin -SqlInstance $serverInstance -Login dmlChecker -Force | out-null 
+ 
