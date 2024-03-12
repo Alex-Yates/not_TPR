@@ -20,6 +20,8 @@ Write-Output ""
 Write-Output "PowerShell version:"
 $PsVersionTable | Format-Table
 
+$branch = git rev-parse --abbrev-ref HEAD
+
 # Redgate telemetry slows things down a lot. Disabling it for speed.
 & setx REDGATE_DISABLE_TELEMETRY true | out-null 
 
@@ -28,15 +30,17 @@ $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
 $gitRoot = $getLocation = (Get-Location).Path
 $functionsFile = Join-Path -Path $buildDir -ChildPath "functions.psm1"
+$flywayConf = "flyway.toml"
 
 # Logging a bunch of parameters for convenience/troubleshooting
 Write-Output "Given parameters:"
 Write-Output "- cherryPick: $cherryPick"
 Write-Output "Derived parameters:"
-Write-Output "- thisScript:               $thisScript"
-Write-Output "- buildDir:                 $buildDir"
-Write-Output "- gitRoot:                  $gitRoot"
-Write-Output "- functionsFile:            $functionsFile"
+Write-Output "- thisScript:    $thisScript"
+Write-Output "- buildDir:      $buildDir"
+Write-Output "- gitRoot:       $gitRoot"
+Write-Output "- functionsFile: $functionsFile"
+Write-Output "- branch:        $branch"
 Write-Output ""
 
 # Importing some dependencies
@@ -46,8 +50,8 @@ Write-Output "Importing module dbatools. Info: dbatools.io"
 import-module dbatools
 Write-Output ""
 
-# Using a few functions from $buildDir\functions.psm1 to grab some required info from the flyway.conf file
-Write-Output "Using imported functions to read Flyway.conf file and interpret target SQL Server deploy info."
+# Using a few functions from $buildDir\functions.psm1 to grab some required info from the $flywayConf file
+Write-Output "Using imported functions to read $flywayConf file and interpret target SQL Server deploy info."
 $jdbcUrl = Get-JdbcUrl
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
@@ -122,12 +126,13 @@ Write-Output ""
 # Using "flyway info" command to query flyway_schema_history and source code to get a list of pending migrations and infer whether they are listed for DML or DDL.
 Write-Output "Running flyway info to discover pending migrations:"
 Write-Output "- Executing: "
-Write-Output "    & flyway info"
+Write-Output "    & flyway info"""
+Write-Output "        -environment=""$branch"""
 Write-Output "        -workingDirectory=""$gitRoot"""
-Write-Output "        -configFiles=""$gitRoot/flyway.conf"""
+Write-Output "        -configFiles=""$gitRoot/$flywayConf"""
 Write-Output "        -outputType=""Json"""
 Write-Output "        -licenseKey=***"
-$flywayInfo = (Invoke-Expression "& flyway info -workingDirectory=`"$gitRoot`" -configFiles=`"$gitRoot/flyway.conf`" -outputType=`"Json`" -licenseKey=$licenseKey") | ConvertFrom-Json
+$flywayInfo = (Invoke-Expression "& flyway info -environment=$branch -workingDirectory=`"$gitRoot`" -configFiles=`"$gitRoot/$flywayConf`" -outputType=`"Json`" -licenseKey=$licenseKey") | ConvertFrom-Json
 $flywayInfo
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
@@ -173,12 +178,13 @@ $migrationsForDeployment | ForEach-Object {
     }
     Write-Output "- Executing: "
     Write-Output "    & flyway migrate"
+    Write-Output "        -environment=""$branch"""
     Write-Output "        -workingDirectory=""$gitRoot"""
-    Write-Output "        -configFiles=""$gitRoot/flyway.conf"""
+    Write-Output "        -configFiles=""$gitRoot/$flywayConf"""
     Write-Output "        -url=""$thisUrl"""
     Write-Output "        -cherryPick=""$thisVersion"""
     Write-Output "        -licenseKey=***"
-    & flyway migrate -workingDirectory="$gitRoot" -configFiles="$gitRoot/flyway.conf" -url="$thisUrl" -cherryPick="$thisVersion" -licenseKey="$licenseKey"
+    & flyway migrate -environment="$branch" -workingDirectory="$gitRoot" -configFiles="$gitRoot/$flywayConf" -url="$thisUrl" -cherryPick="$thisVersion" -licenseKey="$licenseKey"
 if ($LastExitCode -ne 0) {
   exit 1
 }    
@@ -187,7 +193,7 @@ Write-Output ""
 
 # Logging the current deployment status
 Write-Output "Running Flyway info one more time, to log the current state post migration."
-$flywayInfo = (& flyway info -workingDirectory="$gitRoot" -configFiles="$gitRoot/flyway.conf" -outputType="Json" -licenseKey="$licenseKey") | ConvertFrom-Json
+$flywayInfo = (& flyway info -environment="$branch" -workingDirectory="$gitRoot" -configFiles="$gitRoot/$flywayConf" -outputType="Json" -licenseKey="$licenseKey") | ConvertFrom-Json
 $currentVersion = $flywayInfo.schemaVersion
 Write-Output "- CurrentVersion is: $currentVersion"
 $allMigrations = $flywayInfo.migrations

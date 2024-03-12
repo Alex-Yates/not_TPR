@@ -1,1 +1,5 @@
 flyway-dev.user.json
+
+flyway.user.toml
+report.html
+report.json

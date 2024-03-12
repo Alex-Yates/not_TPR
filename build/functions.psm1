@@ -1,17 +1,45 @@
 function Get-JdbcUrl {
-    $confFile = Get-Content "./flyway.conf"
-    $jdbcUrlRow = $confFile | Where-Object {$_ -like "*flyway.url=jdbc:sqlserver://*"}
-    $jdbcUrl = (($jdbcUrlRow.Replace("flyway.url=","")).Trim()).Replace('"',"")
-
+    $branch = git rev-parse --abbrev-ref HEAD
+    $confFile = Get-Content "./flyway.toml"
+    $envRow = $confFile | Where-Object {$_ -like "*environments.$branch*"}
+    if (-not $envRow) {
+        Write-Error "No environment found in conf file for branch $branch"
+    }
+    $isCorrectEnv = $false
+    $jdbcUrl = ""
+    ForEach ($row in $confFile){
+        if ($row -like "*environments.$branch*"){
+            $isCorrectEnv = $true
+        }
+        if (($row -like "*environments.*") -and ($row -notlike "*environments.$branch*")){
+            $isCorrectEnv = $false
+        }
+        if ($isCorrectEnv -and ($row -like "url = *")){
+            $jdbcUrl = ($row -Split '"')[1]
+        }
+    }
     return $jdbcUrl
 }
 
 function Get-SideCarJdbcUrl {
+    $branch = git rev-parse --abbrev-ref HEAD
+    $confFile = Get-Content "./flyway.toml"
+    $envRow = $confFile | Where-Object {$_ -like "*environments.$branch*"}
+    if (-not $envRow) {
+        Write-Error "No environment found in conf file for branch $branch"
+    }
+    $isCorrectEnv = $false
     $jdbcUrl = ""
-    $confFile = Get-Content "./flyway.conf"
-    $jdbcUrlRow = $confFile | Where-Object {$_ -like "flywaySideCarUrl=jdbc:sqlserver://*"}
-    if ($jdbcUrlRow) {
-        $jdbcUrl = (($jdbcUrlRow.Replace("flywaySideCarUrl=","")).Trim()).Replace('"',"")
+    ForEach ($row in $confFile){
+        if ($row -like "*environments.$branch*"){
+            $isCorrectEnv = $true
+        }
+        if (($row -like "*environments.*") -and ($row -notlike "*environments.$branch*")){
+            $isCorrectEnv = $false
+        }
+        if ($isCorrectEnv -and ($row -like "#sidecar = *")){
+            $jdbcUrl = ($row -Split '"')[1]
+        }
     }
     return $jdbcUrl
 }
