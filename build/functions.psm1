@@ -1,5 +1,7 @@
 function Get-JdbcUrl {
-    $branch = git rev-parse --abbrev-ref HEAD
+    param (
+        [Parameter(Mandatory=$true)]$branch
+    )
     $confFile = Get-Content "./flyway.toml"
     $envRow = $confFile | Where-Object {$_ -like "*environments.$branch*"}
     if (-not $envRow) {
@@ -22,7 +24,9 @@ function Get-JdbcUrl {
 }
 
 function Get-SideCarJdbcUrl {
-    $branch = git rev-parse --abbrev-ref HEAD
+    param (
+        [Parameter(Mandatory=$true)]$branch
+    )
     $confFile = Get-Content "./flyway.toml"
     $envRow = $confFile | Where-Object {$_ -like "*environments.$branch*"}
     if (-not $envRow) {

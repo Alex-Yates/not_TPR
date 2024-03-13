@@ -1,6 +1,7 @@
 param (
     $cherryPick = "",
-    $licenseKey = ""
+    $licenseKey = "",
+    $branch = ""
 )
 # If any part of the script fails, stop
 $ErrorActionPreference = "stop"
@@ -19,8 +20,6 @@ Write-Output ""
 
 Write-Output "PowerShell version:"
 $PsVersionTable | Format-Table
-
-$branch = git rev-parse --abbrev-ref HEAD
 
 # Redgate telemetry slows things down a lot. Disabling it for speed.
 & setx REDGATE_DISABLE_TELEMETRY true | out-null 
@@ -52,7 +51,7 @@ Write-Output ""
 
 # Using a few functions from $buildDir\functions.psm1 to grab some required info from the $flywayConf file
 Write-Output "Using imported functions to read $flywayConf file and interpret target SQL Server deploy info."
-$jdbcUrl = Get-JdbcUrl
+$jdbcUrl = Get-JdbcUrl -branch $branch
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
 $database = Get-DatabaseFromJdbcUrl $jdbcUrl
@@ -100,7 +99,7 @@ END
 CREATE USER dmlChecker FOR LOGIN dmlChecker;
 GRANT SELECT, INSERT, UPDATE, DELETE TO dmlChecker;
 "@
-$sideCarUrl = Get-SideCarJdbcUrl
+$sideCarUrl = Get-SideCarJdbcUrl -branch $branch
 if ($sideCarUrl -like ""){
     Write-Output "No sidecar required"
 }
