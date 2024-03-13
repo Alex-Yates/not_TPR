@@ -16,7 +16,7 @@ import-module dbatools
 
 # Reading target JDBC URLs
 $jdbcUrl = Get-JdbcUrl -branch $branch
-$sideCarUrl = Get-SideCarJdbcUrl
+$sideCarUrl = Get-SideCarJdbcUrl -branch $branch
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
 $database = Get-DatabaseFromJdbcUrl $jdbcUrl
