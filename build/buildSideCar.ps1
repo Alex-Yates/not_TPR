@@ -1,3 +1,7 @@
+param (
+    [Parameter(Mandatory=$true)]$branch = ""
+)
+
 # Managing relative paths to all the necessary files is a pain
 $thisScript = $MyInvocation.MyCommand.Path
 $buildDir = Split-Path $thisScript -Parent
