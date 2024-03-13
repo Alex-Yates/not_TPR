@@ -11,7 +11,7 @@ Write-Output "Importing module dbatools. Info: dbatools.io"
 import-module dbatools
 
 # Reading target JDBC URLs
-$jdbcUrl = Get-JdbcUrl
+$jdbcUrl = Get-JdbcUrl -branch $branch
 $sideCarUrl = Get-SideCarJdbcUrl
 $server = Get-ServerFromJdbcUrl $jdbcUrl
 $instance = Get-InstanceFromJdbcUrl $jdbcUrl
