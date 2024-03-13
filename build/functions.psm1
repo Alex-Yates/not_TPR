@@ -41,7 +41,7 @@ function Get-SideCarJdbcUrl {
         if (($row -like "*environments.*") -and ($row -notlike "*environments.$branch*")){
             $isCorrectEnv = $false
         }
-        if ($isCorrectEnv -and ($row -like "#sidecar = *")){
+        if ($isCorrectEnv -and ($row -like "sidecar = *")){
             $jdbcUrl = ($row -Split '"')[1]
         }
     }
