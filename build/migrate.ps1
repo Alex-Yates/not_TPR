@@ -1,7 +1,7 @@
 param (
     $cherryPick = "",
     $licenseKey = "",
-    [Parameter(Mandatory=$true)]$branch = ""
+    [Parameter(Mandatory=$true)]$branch
 )
 # If any part of the script fails, stop
 $ErrorActionPreference = "stop"

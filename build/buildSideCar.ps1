@@ -1,5 +1,5 @@
 param (
-    [Parameter(Mandatory=$true)]$branch = ""
+    [Parameter(Mandatory=$true)]$branch
 )
 
 # Managing relative paths to all the necessary files is a pain
